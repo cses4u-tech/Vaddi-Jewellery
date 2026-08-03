@@ -1,0 +1,123 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VADDI Jewellery — Admin</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+body{padding:0}.adminbar{padding:18px 5%;border-bottom:1px solid #e5e1da;display:flex;justify-content:space-between;align-items:center;background:#fff}
+.adminmain{width:min(1250px,92%);margin:35px auto}.statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:25px 0}.stat{background:#fff;border:1px solid #e5e1da;padding:22px}.stat b{font:600 35px "Cormorant Garamond"}.panel{background:#fff;border:1px solid #e5e1da;padding:25px;margin:20px 0}.formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.formgrid .full{grid-column:1/-1}.formgrid input,.formgrid select,.formgrid textarea{width:100%;padding:12px;border:1px solid #dcd7cc;background:#fff;font-family:inherit}.formgrid label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:#716e68}.formgrid label>*{margin-top:7px}.hint{font-size:10px;color:#9a9483}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:11px}th,td{text-align:left;padding:12px;border-bottom:1px solid #e5e1da}th{font-size:9px;text-transform:uppercase;letter-spacing:.1em}.thumbs{display:flex;gap:7px;flex-wrap:wrap}.thumbs img{width:58px;height:58px;object-fit:cover;border:1px solid #e5e1da}.loginbox{width:min(430px,92%);margin:100px auto;background:#fff;border:1px solid #e5e1da;padding:35px}.loginbox input{width:100%;padding:14px;border:1px solid #ddd}.hidden{display:none!important}.pill{display:inline-block;padding:5px 8px;background:#f0ede5;font-size:9px}.danger{border:1px solid #c99;background:#fff;padding:7px}.edit{border:1px solid #aaa;background:#fff;padding:7px;margin-right:5px}@media(max-width:800px){.statgrid{grid-template-columns:1fr 1fr}.formgrid{grid-template-columns:1fr}.formgrid .full{grid-column:auto}}
+</style></head><body>
+<div id="login" class="loginbox"><div class="logo">VADDI<small>JEWELLERY ADMIN</small></div><h1>Admin Login</h1><input id="pw" type="password" placeholder="Password"><br><br><button class="btn dark" onclick="login()">Login</button><p id="err"></p></div>
+<div id="dash" class="hidden">
+<header class="adminbar"><a class="logo" href="/">VADDI<small>ADMIN</small></a><div><a href="/">View Store</a> &nbsp; <button onclick="logout()">Logout</button></div></header>
+<main class="adminmain">
+<h1>Inventory Dashboard</h1>
+<div id="stats" class="statgrid"></div>
+<section class="panel"><h2 id="formtitle">Add Jewellery</h2><p class="hint">Product ID and Product Code are generated automatically by the backend. You only enter product details.</p>
+<form id="productForm" class="formgrid">
+<input type="hidden" id="editId">
+<label>Title<input id="title" required placeholder="e.g. Temple Lakshmi Haram"></label>
+<label>Product Type<select id="product_type"><option>Jewellery</option><option>Coin</option><option>Idol</option><option>Pooja Article</option><option>Silver Article</option><option>Custom Order</option></select></label>
+<label>Metal Type<select id="metal"><option>Gold</option><option>Silver</option></select></label>
+<label>Category<select id="category" required></select></label>
+<label>Purity<select id="purity"><option>22K BIS 916</option><option>24K 999</option><option>92.5 Silver</option></select></label>
+<label>Weight<select id="weight"><option value="1">1 g</option><option value="2">2 g</option><option value="5">5 g</option><option value="10">10 g</option><option value="20">20 g</option><option value="25">25 g</option><option value="50">50 g</option><option value="75">75 g</option><option value="100">100 g</option><option value="150">150 g</option><option value="200">200 g</option><option value="250">250 g</option><option value="300">300 g</option><option value="500">500 g</option><option value="1000">1000 g</option></select></label>
+<label>Size / Dimension<select id="size"><option>Small</option><option>Medium</option><option>Large</option><option>2.2</option><option>2.4</option><option>2.6</option><option>18 in</option><option>20 in</option><option>22 in</option><option>24 in</option><option>Custom</option></select></label>
+<label>Availability<select id="availability"><option>In Stock</option><option>Custom Order</option><option>Out of Stock</option></select></label>
+<label>Price<input id="price" type="number" min="0" step="0.01" placeholder="0"></label>
+<label>Images<input id="images" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple><span class="hint">You can select multiple images. They are stored locally.</span></label>
+<label class="full">Description<textarea id="description" rows="3" placeholder="Product description"></textarea></label>
+<label><span><input id="show_price" type="checkbox"> Show price to customers</span></label>
+<label><span><input id="featured" type="checkbox"> Featured</span></label>
+<label><span><input id="new_arrival" type="checkbox"> New Arrival</span></label>
+<div class="full"><button class="btn gold" type="submit">Save Product</button> <button class="btn outline" type="button" onclick="resetForm()">Clear</button></div>
+</form></section>
+<section class="panel"><h2>Products</h2><input id="search" placeholder="Search products..." style="padding:12px;width:100%;border:1px solid #ddd" oninput="renderProducts()"><div id="rows" class="tablewrap"></div></section>
+<section class="panel"><h2>Customer Enquiries</h2><div id="enq"></div></section>
+</main></div>
+<script>
+const $=id=>document.getElementById(id);let products=[],categories=[];
+async function api(u,o={}){
+  let r;
+  try { r=await fetch(u,o); }
+  catch(e){ throw Error("Cannot connect to the server. Please make sure Flask is running."); }
+  const text=await r.text();
+  let d;
+  try { d=JSON.parse(text); }
+  catch(e){
+    const short=text.replace(/<[^>]*>/g," ").replace(/\\s+/g," ").trim().slice(0,240);
+    throw Error(`Server returned an unexpected response (${r.status}). ${short || "Please check the Flask console."}`);
+  }
+  if(!r.ok) throw Error(d.error||"Request failed");
+  return d;
+}
+async function login(){try{await api("/api/admin/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:$("pw").value})});showDash()}catch(e){$("err").textContent=e.message}}
+async function showDash(){$("login").classList.add("hidden");$("dash").classList.remove("hidden");await load()}
+async function load(){let[s,p,c,e]=await Promise.all([api("/api/admin/stats"),api("/api/admin/products"),api("/api/categories"),api("/api/admin/enquiries")]);products=p;categories=c;$("stats").innerHTML=`<div class="stat"><small>GOLD ITEMS</small><br><b>${s.gold}</b></div><div class="stat"><small>SILVER ITEMS</small><br><b>${s.silver}</b></div><div class="stat"><small>ENQUIRIES</small><br><b>${s.enquiries}</b></div><div class="stat"><small>OUT OF STOCK</small><br><b>${s.out_of_stock}</b></div>`;populateCategories();renderProducts();renderEnquiries()}
+function populateCategories(){let m=$("metal").value;let filtered=categories.filter(c=>c.metal===m||c.metal==="All");$("category").innerHTML=filtered.map(c=>`<option>${esc(c.name)}</option>`).join("")}
+$("metal").onchange=()=>{populateCategories();$("purity").value=$("metal").value==="Gold"?"22K BIS 916":"92.5 Silver"}
+function renderProducts(){let q=$("search").value.toLowerCase();let a=products.filter(x=>(x.title+" "+x.code+" "+x.category).toLowerCase().includes(q));$("rows").innerHTML=`<table><tr><th>ID</th><th>Code</th><th>Product</th><th>Metal</th><th>Weight</th><th>Images</th><th>Status</th><th>Actions</th></tr>${a.map(x=>`<tr><td>#${x.id}</td><td><span class="pill">${esc(x.code)}</span></td><td><b>${esc(x.title)}</b><br><small>${esc(x.category)}</small></td><td>${esc(x.metal)}</td><td>${x.weight} g</td><td>${thumbs(x)}</td><td>${esc(x.availability)}</td><td><button class="edit" onclick="editProduct(${x.id})">Edit</button><button class="danger" onclick="del(${x.id})">Delete</button></td></tr>`).join("")}</table>`}
+function thumbs(x){let a=[];try{a=JSON.parse(x.image_paths||"[]")}catch{}return `<div class="thumbs">${a.map(p=>`<img class="product-thumb" src="${esc(p)}" loading="lazy" onclick="openAdminImage(${JSON.stringify(p)}, ${JSON.stringify(x.title)})">`).join("")||"—"}</div>`}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function editProduct(id){let x=products.find(p=>p.id===id);if(!x)return;$("editId").value=x.id;$("formtitle").textContent="Edit Jewellery — #"+x.id+" / "+x.code;$("title").value=x.title;$("product_type").value=x.product_type||"Jewellery";$("metal").value=x.metal;populateCategories();$("category").value=x.category;$("purity").value=x.purity;$("weight").value=String(x.weight);if(!$("weight").value||$("weight").value!==String(x.weight)){$("weight").insertAdjacentHTML("beforeend",`<option value="${x.weight}" selected>${x.weight} g</option>`);$("weight").value=String(x.weight)}$("size").value=x.size;$("availability").value=x.availability;$("price").value=x.price;$("description").value=x.description||"";$("show_price").checked=!!x.show_price;$("featured").checked=!!x.featured;$("new_arrival").checked=!!x.new_arrival;window.scrollTo({top:0,behavior:"smooth"})}
+function resetForm(){$("productForm").reset();$("editId").value="";$("formtitle").textContent="Add Jewellery";populateCategories()}
+$("productForm").onsubmit=async e=>{e.preventDefault();let fd=new FormData();["title","product_type","metal","category","purity","weight","size","availability","price","description"].forEach(k=>fd.append(k,$(k).value));["show_price","featured","new_arrival"].forEach(k=>{if($(k).checked)fd.append(k,"1")});for(let f of $("images").files)fd.append("images",f);try{
+  const id=$("editId").value;
+  const btn=$("productForm").querySelector("button[type=submit]");
+  btn.disabled=true; btn.textContent="Uploading & Processing...";
+  let d=await api(id?"/api/admin/products/"+id:"/api/admin/products",{method:id?"PUT":"POST",body:fd});
+  btn.disabled=false; btn.textContent="Save Product";
+  const warning=(d.warnings&&d.warnings.length)?("\n\nImage processing notes:\n"+d.warnings.join("\n")):"";
+  alert((id?"Product updated successfully.":"Product created successfully. Backend assigned code: "+d.code)+warning);
+  resetForm(); await load();
+}catch(err){
+  const btn=$("productForm").querySelector("button[type=submit]");
+  btn.disabled=false; btn.textContent="Save Product";
+  alert("Upload/save failed:\n\n"+err.message);
+}}
+async function del(id){if(confirm("Delete this product permanently?")){await api("/api/admin/products/"+id,{method:"DELETE"});load()}}
+async function renderEnquiries(){let e=await api("/api/admin/enquiries");$("enq").innerHTML=e.map(x=>`<p><b>${esc(x.customer_name)}</b> · ${esc(x.phone)} · ${esc(x.product_code)} · ${esc(x.status)}</p>`).join("")||"<p>No enquiries yet.</p>"}
+async function logout(){await api("/api/admin/logout",{method:"POST"});location.reload()}
+(async()=>{let m=await api("/api/admin/me");if(m.authenticated)showDash()})()
+</script>
+<div id="adminImageViewer" class="admin-image-viewer" aria-hidden="true">
+  <div class="admin-viewer-toolbar">
+    <button class="admin-viewer-btn" onclick="adminZoom(-.25)" title="Zoom out">−</button>
+    <button class="admin-viewer-btn" onclick="adminZoom(0)" title="Reset">1:1</button>
+    <button class="admin-viewer-btn" onclick="adminZoom(.25)" title="Zoom in">+</button>
+    <button class="admin-viewer-btn" onclick="closeAdminImage()" title="Close">×</button>
+  </div>
+  <div id="adminViewerStage" class="admin-viewer-stage">
+    <img id="adminViewerImg" class="admin-viewer-img" alt="">
+  </div>
+  <div id="adminViewerTitle" class="admin-viewer-title"></div>
+</div>
+<script>
+let adminScale=1,adminX=0,adminY=0,adminDrag=false,adminSX=0,adminSY=0,adminOX=0,adminOY=0;
+function adminRender(){document.getElementById('adminViewerImg').style.transform=`translate3d(${adminX}px,${adminY}px,0) scale(${adminScale})`;}
+function openAdminImage(src,title){
+  const v=document.getElementById('adminImageViewer'),img=document.getElementById('adminViewerImg');
+  if(!src)return;
+  adminScale=1;adminX=0;adminY=0;
+  document.getElementById('adminViewerTitle').textContent=title||'VADDI Jewellery';
+  img.onload=()=>adminRender();
+  img.onerror=()=>{document.getElementById('adminViewerTitle').textContent='Image could not be loaded';};
+  img.src=src;
+  v.classList.add('open');v.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
+}
+function closeAdminImage(){const v=document.getElementById('adminImageViewer');v.classList.remove('open');v.setAttribute('aria-hidden','true');document.body.style.overflow='';document.getElementById('adminViewerImg').removeAttribute('src');}
+function adminZoom(d){
+  if(d===0){adminScale=1;adminX=0;adminY=0;}
+  else adminScale=Math.min(5,Math.max(1,adminScale+d));
+  if(adminScale===1){adminX=0;adminY=0;}
+  adminRender();
+}
+const adminStage=document.getElementById('adminViewerStage');
+adminStage.addEventListener('wheel',e=>{e.preventDefault();adminZoom(e.deltaY<0?.25:-.25)},{passive:false});
+adminStage.addEventListener('pointerdown',e=>{if(adminScale<=1)return;adminDrag=true;adminSX=e.clientX;adminSY=e.clientY;adminOX=adminX;adminOY=adminY;adminStage.setPointerCapture?.(e.pointerId);});
+adminStage.addEventListener('pointermove',e=>{if(!adminDrag)return;adminX=adminOX+e.clientX-adminSX;adminY=adminOY+e.clientY-adminSY;adminRender();});
+adminStage.addEventListener('pointerup',()=>adminDrag=false);
+document.getElementById('adminImageViewer').addEventListener('click',e=>{if(e.target===document.getElementById('adminImageViewer')||e.target===adminStage)closeAdminImage();});
+document.addEventListener('keydown',e=>{if(!document.getElementById('adminImageViewer').classList.contains('open'))return;if(e.key==='Escape')closeAdminImage();});
+</script>
+
+</body></html>
