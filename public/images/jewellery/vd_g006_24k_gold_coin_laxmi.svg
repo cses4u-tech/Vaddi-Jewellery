@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff9e8"/><stop offset="100%" stop-color="#f5edd6"/>
+    </radialGradient>
+    <radialGradient id="coinGrad" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#FFFBEB"/><stop offset="25%" stop-color="#FACC15"/><stop offset="55%" stop-color="#CA8A04"/><stop offset="85%" stop-color="#854D0E"/><stop offset="100%" stop-color="#583101"/>
+    </radialGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#713F12" flood-opacity="0.3"/></filter>
+  </defs>
+  <rect width="600" height="600" fill="url(#bgGlow)"/>
+  <g filter="url(#shadow)" transform="translate(300, 280)">
+    <!-- Outer coin with serrated edges -->
+    <circle cx="0" cy="0" r="160" fill="url(#coinGrad)"/>
+    <circle cx="0" cy="0" r="150" fill="none" stroke="#FEF08A" stroke-width="3"/>
+    <circle cx="0" cy="0" r="142" fill="none" stroke="#713F12" stroke-width="1.5" stroke-dasharray="4,4"/>
+    
+    <!-- Inner Coin Field -->
+    <circle cx="0" cy="0" r="135" fill="#EAB308" stroke="#A16207" stroke-width="2"/>
+    
+    <!-- Embossed Goddess Lakshmi & Lotus -->
+    <!-- Lotus Base -->
+    <path d="M -45 55 Q 0 35 45 55 Q 0 85 -45 55 Z" fill="#CA8A04" stroke="#713F12" stroke-width="1.5"/>
+    <circle cx="0" cy="0" r="45" fill="#FACC15" stroke="#854D0E" stroke-width="1.5"/>
+    <!-- Head & Crown -->
+    <circle cx="0" cy="-22" r="14" fill="#FEF08A"/>
+    <path d="M -12 -30 L 0 -48 L 12 -30 Z" fill="#CA8A04"/>
+    <!-- 4 Hands holding lotus & showering coins -->
+    <circle cx="-32" cy="-8" r="8" fill="#FDE047"/>
+    <circle cx="32" cy="-8" r="8" fill="#FDE047"/>
+    <circle cx="-28" cy="20" r="6" fill="#FDE047"/>
+    <circle cx="28" cy="20" r="6" fill="#FDE047"/>
+    
+    <!-- Text on Coin -->
+    <text x="0" y="-105" font-family="'Cormorant Garamond', Georgia, serif" font-size="18" font-weight="bold" fill="#713F12" letter-spacing="3" text-anchor="middle">VADDI JEWELLERY</text>
+    <text x="0" y="115" font-family="'Plus Jakarta Sans', sans-serif" font-size="16" font-weight="800" fill="#713F12" letter-spacing="2" text-anchor="middle">24K • 999.9 PURE GOLD • 10g</text>
+  </g>
+  <text x="300" y="560" font-family="'Cormorant Garamond', Georgia, serif" font-size="14" font-weight="600" fill="#9A9483" letter-spacing="4" text-anchor="middle">VADDI JEWELLERY • CERTIFIED 24K 999 GOLD COIN</text>
+</svg>

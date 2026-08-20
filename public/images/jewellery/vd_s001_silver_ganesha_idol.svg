@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f8fafc"/><stop offset="100%" stop-color="#e2e8f0"/>
+    </radialGradient>
+    <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/><stop offset="30%" stop-color="#E2E8F0"/><stop offset="55%" stop-color="#CBD5E1"/><stop offset="80%" stop-color="#94A3B8"/><stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+    <linearGradient id="silverShine" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/><stop offset="40%" stop-color="#F1F5F9"/><stop offset="70%" stop-color="#94A3B8"/><stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#1E293B" flood-opacity="0.22"/></filter>
+  </defs>
+  <rect width="600" height="600" fill="url(#bgGlow)"/>
+  
+  <g filter="url(#shadow)" transform="translate(300, 270)">
+    <!-- Intricate Silver Peedam / Pedestal base -->
+    <path d="M -120 160 L 120 160 L 140 190 L -140 190 Z" fill="url(#silverGrad)" stroke="#475569" stroke-width="2"/>
+    <path d="M -100 135 L 100 135 L 120 160 L -120 160 Z" fill="url(#silverShine)" stroke="#334155" stroke-width="1.5"/>
+    <rect x="-135" y="185" width="270" height="15" rx="3" fill="url(#silverGrad)" stroke="#334155" stroke-width="2"/>
+    
+    <!-- Halo / Prabhavali Arch -->
+    <path d="M -110 130 C -110 -110 110 -110 110 130" fill="none" stroke="url(#silverGrad)" stroke-width="16"/>
+    <path d="M -105 130 C -105 -100 105 -100 105 130" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+    <circle cx="0" cy="-115" r="10" fill="url(#silverGrad)" stroke="#334155" stroke-width="1"/>
+    
+    <!-- Lord Ganesha Figure in 92.5 Silver -->
+    <!-- Belly & Dhoti -->
+    <ellipse cx="0" cy="70" rx="65" ry="50" fill="url(#silverGrad)" stroke="#334155" stroke-width="2"/>
+    <!-- Folded legs -->
+    <path d="M -80 115 C -40 135 40 135 80 115 C 60 90 -60 90 -80 115 Z" fill="url(#silverShine)" stroke="#334155" stroke-width="1.5"/>
+    
+    <!-- Chest & Angavastram -->
+    <ellipse cx="0" cy="20" rx="45" ry="32" fill="url(#silverGrad)" stroke="#334155" stroke-width="1.5"/>
+    <!-- Sacred thread (Janeu) -->
+    <path d="M -25 0 Q 0 45 25 65" fill="none" stroke="#F1F5F9" stroke-width="2"/>
+    
+    <!-- Ears -->
+    <ellipse cx="-48" cy="-35" rx="28" ry="36" fill="url(#silverShine)" stroke="#334155" stroke-width="1.5"/>
+    <ellipse cx="48" cy="-35" rx="28" ry="36" fill="url(#silverShine)" stroke="#334155" stroke-width="1.5"/>
+    
+    <!-- Head & Face -->
+    <ellipse cx="0" cy="-35" rx="38" ry="40" fill="url(#silverGrad)" stroke="#334155" stroke-width="2"/>
+    
+    <!-- Trunk (Right-turned/Left-turned classic) -->
+    <path d="M -8 -30 Q -15 15 10 30 Q 30 35 30 18 Q 15 15 8 -30 Z" fill="url(#silverShine)" stroke="#334155" stroke-width="1.5"/>
+    <!-- Modak in hand -->
+    <circle cx="-55" cy="40" r="11" fill="url(#silverGrad)" stroke="#334155" stroke-width="1"/>
+    
+    <!-- Crown (Mukut) -->
+    <path d="M -26 -65 L 0 -110 L 26 -65 Z" fill="url(#silverGrad)" stroke="#334155" stroke-width="2"/>
+    <line x1="-20" y1="-78" x2="20" y2="-78" stroke="#FFFFFF" stroke-width="2"/>
+    <line x1="-14" y1="-92" x2="14" y2="-92" stroke="#FFFFFF" stroke-width="2"/>
+    
+    <!-- Mouse (Mushika) at feet -->
+    <ellipse cx="75" cy="150" rx="14" ry="9" fill="url(#silverShine)" stroke="#334155" stroke-width="1"/>
+    <!-- Modak plate -->
+    <ellipse cx="-75" cy="150" rx="16" ry="7" fill="url(#silverGrad)" stroke="#334155" stroke-width="1"/>
+  </g>
+  <text x="300" y="560" font-family="'Cormorant Garamond', Georgia, serif" font-size="14" font-weight="600" fill="#64748B" letter-spacing="4" text-anchor="middle">VADDI JEWELLERY • 92.5 STERLING SILVER GANESHA IDOL</text>
+</svg>

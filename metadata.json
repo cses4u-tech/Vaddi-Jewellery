@@ -1,0 +1,6 @@
+{
+  "name": "VADDI Jewellery",
+  "description": "Prestigious heritage jewellery showroom in Proddatur featuring 22K BIS Hallmarked Gold, 92.5 Sterling Silver, custom jewellery catalog, bilingual English and Telugu support, and digital showroom management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

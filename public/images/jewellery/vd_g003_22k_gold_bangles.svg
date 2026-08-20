@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fffbf2"/><stop offset="100%" stop-color="#f6efe1"/>
+    </radialGradient>
+    <linearGradient id="goldShiny" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF3A8"/><stop offset="30%" stop-color="#DDA92B"/><stop offset="60%" stop-color="#FFF1B0"/><stop offset="100%" stop-color="#946505"/>
+    </linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#6B4B0B" flood-opacity="0.22"/></filter>
+  </defs>
+  <rect width="600" height="600" fill="url(#bgGlow)"/>
+  <g filter="url(#shadow)">
+    <!-- Bangle 1 (Back/Left) -->
+    <g transform="translate(260, 270) rotate(-22)">
+      <ellipse cx="0" cy="0" rx="130" ry="110" fill="none" stroke="url(#goldShiny)" stroke-width="32"/>
+      <ellipse cx="0" cy="0" rx="130" ry="110" fill="none" stroke="#7A5000" stroke-width="1.5" stroke-dasharray="8,6"/>
+      <circle cx="130" cy="0" r="3.5" fill="#FFE599"/><circle cx="125.57035741757888" cy="28.470094961277283" r="3.5" fill="#FFE599"/><circle cx="112.58330249197704" cy="54.99999999999999" r="3.5" fill="#FFE599"/><circle cx="91.92388155425118" cy="77.78174593052022" r="3.5" fill="#FFE599"/><circle cx="65.00000000000001" cy="95.26279441628824" r="3.5" fill="#FFE599"/><circle cx="33.646475863327694" cy="106.25184089179751" r="3.5" fill="#FFE599"/><circle cx="7.960204194457796e-15" cy="110" r="3.5" fill="#FFE599"/><circle cx="-33.64647586332771" cy="106.25184089179751" r="3.5" fill="#FFE599"/><circle cx="-64.99999999999997" cy="95.26279441628826" r="3.5" fill="#FFE599"/><circle cx="-91.92388155425117" cy="77.78174593052023" r="3.5" fill="#FFE599"/><circle cx="-112.58330249197704" cy="54.99999999999999" r="3.5" fill="#FFE599"/><circle cx="-125.57035741757886" cy="28.47009496127731" r="3.5" fill="#FFE599"/><circle cx="-130" cy="1.3471114790620885e-14" r="3.5" fill="#FFE599"/><circle cx="-125.57035741757889" cy="-28.470094961277237" r="3.5" fill="#FFE599"/><circle cx="-112.58330249197702" cy="-55.000000000000014" r="3.5" fill="#FFE599"/><circle cx="-91.9238815542512" cy="-77.78174593052022" r="3.5" fill="#FFE599"/><circle cx="-65.00000000000006" cy="-95.26279441628823" r="3.5" fill="#FFE599"/><circle cx="-33.64647586332768" cy="-106.25184089179751" r="3.5" fill="#FFE599"/><circle cx="-2.3880612583373385e-14" cy="-110" r="3.5" fill="#FFE599"/><circle cx="33.64647586332764" cy="-106.25184089179753" r="3.5" fill="#FFE599"/><circle cx="65.00000000000001" cy="-95.26279441628824" r="3.5" fill="#FFE599"/><circle cx="91.92388155425115" cy="-77.78174593052024" r="3.5" fill="#FFE599"/><circle cx="112.583302491977" cy="-55.00000000000005" r="3.5" fill="#FFE599"/><circle cx="125.57035741757888" cy="-28.470094961277276" r="3.5" fill="#FFE599"/>
+    </g>
+    <!-- Bangle 2 (Front/Right) -->
+    <g transform="translate(340, 330) rotate(-18)">
+      <ellipse cx="0" cy="0" rx="130" ry="110" fill="none" stroke="url(#goldShiny)" stroke-width="34"/>
+      <ellipse cx="0" cy="0" rx="130" ry="110" fill="none" stroke="#684100" stroke-width="2"/>
+      <ellipse cx="0" cy="0" rx="142" ry="122" fill="none" stroke="#FFF7CC" stroke-width="2"/>
+      <!-- Embossed Lakshmi / Floral Nakshi dots -->
+      
+          <circle cx="130" cy="0" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="119.60000000000001" cy="0" r="2" fill="#B32438"/>
+        
+          <circle cx="125.57035741757888" cy="28.470094961277283" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="115.52472882417257" cy="26.1924873643751" r="2" fill="#B32438"/>
+        
+          <circle cx="112.58330249197704" cy="54.99999999999999" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="103.57663829261888" cy="50.599999999999994" r="2" fill="#B32438"/>
+        
+          <circle cx="91.92388155425118" cy="77.78174593052022" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="84.56997102991109" cy="71.5592062560786" r="2" fill="#B32438"/>
+        
+          <circle cx="65.00000000000001" cy="95.26279441628824" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="59.80000000000002" cy="87.64177086298518" r="2" fill="#B32438"/>
+        
+          <circle cx="33.646475863327694" cy="106.25184089179751" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="30.95475779426148" cy="97.75169362045372" r="2" fill="#B32438"/>
+        
+          <circle cx="7.960204194457796e-15" cy="110" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="7.323387858901172e-15" cy="101.2" r="2" fill="#B32438"/>
+        
+          <circle cx="-33.64647586332771" cy="106.25184089179751" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="-30.954757794261493" cy="97.75169362045372" r="2" fill="#B32438"/>
+        
+          <circle cx="-64.99999999999997" cy="95.26279441628826" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="-59.799999999999976" cy="87.6417708629852" r="2" fill="#B32438"/>
+        
+          <circle cx="-91.92388155425117" cy="77.78174593052023" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="-84.56997102991107" cy="71.55920625607861" r="2" fill="#B32438"/>
+        
+          <circle cx="-112.58330249197704" cy="54.99999999999999" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="-103.57663829261888" cy="50.599999999999994" r="2" fill="#B32438"/>
+        
+          <circle cx="-125.57035741757886" cy="28.47009496127731" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="-115.52472882417256" cy="26.19248736437513" r="2" fill="#B32438"/>
+        
+          <circle cx="-130" cy="1.3471114790620885e-14" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="-119.60000000000001" cy="1.2393425607371216e-14" r="2" fill="#B32438"/>
+        
+          <circle cx="-125.57035741757889" cy="-28.470094961277237" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="-115.52472882417258" cy="-26.192487364375058" r="2" fill="#B32438"/>
+        
+          <circle cx="-112.58330249197702" cy="-55.000000000000014" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="-103.57663829261887" cy="-50.600000000000016" r="2" fill="#B32438"/>
+        
+          <circle cx="-91.9238815542512" cy="-77.78174593052022" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="-84.5699710299111" cy="-71.5592062560786" r="2" fill="#B32438"/>
+        
+          <circle cx="-65.00000000000006" cy="-95.26279441628823" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="-59.800000000000054" cy="-87.64177086298517" r="2" fill="#B32438"/>
+        
+          <circle cx="-33.64647586332768" cy="-106.25184089179751" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="-30.954757794261468" cy="-97.75169362045372" r="2" fill="#B32438"/>
+        
+          <circle cx="-2.3880612583373385e-14" cy="-110" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="-2.1970163576703517e-14" cy="-101.2" r="2" fill="#B32438"/>
+        
+          <circle cx="33.64647586332764" cy="-106.25184089179753" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="30.95475779426143" cy="-97.75169362045374" r="2" fill="#B32438"/>
+        
+          <circle cx="65.00000000000001" cy="-95.26279441628824" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="59.80000000000002" cy="-87.64177086298518" r="2" fill="#B32438"/>
+        
+          <circle cx="91.92388155425115" cy="-77.78174593052024" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="84.56997102991106" cy="-71.55920625607862" r="2" fill="#B32438"/>
+        
+          <circle cx="112.583302491977" cy="-55.00000000000005" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="103.57663829261884" cy="-50.60000000000005" r="2" fill="#B32438"/>
+        
+          <circle cx="125.57035741757888" cy="-28.470094961277276" r="4" fill="#FFE599" stroke="#946505" stroke-width="0.8"/>
+          <circle cx="115.52472882417257" cy="-26.192487364375094" r="2" fill="#B32438"/>
+        
+    </g>
+  </g>
+  <text x="300" y="560" font-family="'Cormorant Garamond', Georgia, serif" font-size="14" font-weight="600" fill="#9A9483" letter-spacing="4" text-anchor="middle">VADDI JEWELLERY • 22K NAKSHI KADAS (PAIR)</text>
+</svg>

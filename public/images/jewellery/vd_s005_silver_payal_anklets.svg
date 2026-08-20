@@ -1,0 +1,179 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f8fafc"/><stop offset="100%" stop-color="#e2e8f0"/>
+    </radialGradient>
+    <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/><stop offset="40%" stop-color="#E2E8F0"/><stop offset="70%" stop-color="#94A3B8"/><stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#1E293B" flood-opacity="0.2"/></filter>
+  </defs>
+  <rect width="600" height="600" fill="url(#bgGlow)"/>
+  <g filter="url(#shadow)">
+    <!-- Anklet 1 (Top Wave) -->
+    <g transform="translate(0, 190)">
+      <path d="M 120 40 Q 300 120 480 40" fill="none" stroke="url(#silverGrad)" stroke-width="18" stroke-linecap="round"/>
+      <path d="M 120 40 Q 300 120 480 40" fill="none" stroke="#334155" stroke-width="2"/>
+      <!-- Ghungroo / Silver bells along bottom -->
+      
+          <circle cx="135" cy="56" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="135" y1="50" x2="135" y2="56" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="148.75" cy="65.39788583984371" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="148.75" y1="59.39788583984371" x2="148.75" y2="65.39788583984371" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="162.5" cy="74.63497124738149" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="162.5" y1="68.63497124738149" x2="162.5" y2="74.63497124738149" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="176.25" cy="83.55320713028647" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="176.25" y1="77.55320713028647" x2="176.25" y2="83.55320713028647" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="190" cy="92" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="190" y1="86" x2="190" y2="92" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="203.75" cy="99.83082288862789" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="203.75" y1="93.83082288862789" x2="203.75" y2="99.83082288862789" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="217.5" cy="106.91168824543142" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="217.5" y1="100.91168824543142" x2="217.5" y2="106.91168824543142" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="231.25" cy="113.12144050096893" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="231.25" y1="107.12144050096893" x2="231.25" y2="113.12144050096893" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="245" cy="118.35382907247958" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="245" y1="112.35382907247958" x2="245" y2="118.35382907247958" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="258.75" cy="122.51932634081264" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="258.75" y1="116.51932634081264" x2="258.75" y2="122.51932634081264" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="272.5" cy="125.54665949281292" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="272.5" y1="119.54665949281292" x2="272.5" y2="125.54665949281292" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="286.25" cy="127.38403001891434" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="286.25" y1="121.38403001891434" x2="286.25" y2="127.38403001891434" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="300" cy="128" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="300" y1="122" x2="300" y2="128" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="313.75" cy="127.38403001891436" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="313.75" y1="121.38403001891436" x2="313.75" y2="127.38403001891436" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="327.5" cy="125.54665949281292" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="327.5" y1="119.54665949281292" x2="327.5" y2="125.54665949281292" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="341.25" cy="122.51932634081264" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="341.25" y1="116.51932634081264" x2="341.25" y2="122.51932634081264" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="355" cy="118.35382907247958" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="355" y1="112.35382907247958" x2="355" y2="118.35382907247958" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="368.75" cy="113.12144050096893" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="368.75" y1="107.12144050096893" x2="368.75" y2="113.12144050096893" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="382.5" cy="106.91168824543144" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="382.5" y1="100.91168824543144" x2="382.5" y2="106.91168824543144" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="396.25" cy="99.8308228886279" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="396.25" y1="93.8308228886279" x2="396.25" y2="99.8308228886279" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="410" cy="92" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="410" y1="86" x2="410" y2="92" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="423.75" cy="83.55320713028647" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="423.75" y1="77.55320713028647" x2="423.75" y2="83.55320713028647" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="437.5" cy="74.63497124738151" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="437.5" y1="68.63497124738151" x2="437.5" y2="74.63497124738151" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="451.25" cy="65.39788583984371" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="451.25" y1="59.39788583984371" x2="451.25" y2="65.39788583984371" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="465" cy="56.00000000000001" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="465" y1="50.00000000000001" x2="465" y2="56.00000000000001" stroke="#334155" stroke-width="1"/>
+        
+    </g>
+
+    <!-- Anklet 2 (Bottom Wave) -->
+    <g transform="translate(0, 310)">
+      <path d="M 120 40 Q 300 120 480 40" fill="none" stroke="url(#silverGrad)" stroke-width="18" stroke-linecap="round"/>
+      <path d="M 120 40 Q 300 120 480 40" fill="none" stroke="#334155" stroke-width="2"/>
+      
+          <circle cx="135" cy="56" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="135" y1="50" x2="135" y2="56" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="148.75" cy="65.39788583984371" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="148.75" y1="59.39788583984371" x2="148.75" y2="65.39788583984371" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="162.5" cy="74.63497124738149" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="162.5" y1="68.63497124738149" x2="162.5" y2="74.63497124738149" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="176.25" cy="83.55320713028647" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="176.25" y1="77.55320713028647" x2="176.25" y2="83.55320713028647" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="190" cy="92" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="190" y1="86" x2="190" y2="92" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="203.75" cy="99.83082288862789" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="203.75" y1="93.83082288862789" x2="203.75" y2="99.83082288862789" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="217.5" cy="106.91168824543142" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="217.5" y1="100.91168824543142" x2="217.5" y2="106.91168824543142" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="231.25" cy="113.12144050096893" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="231.25" y1="107.12144050096893" x2="231.25" y2="113.12144050096893" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="245" cy="118.35382907247958" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="245" y1="112.35382907247958" x2="245" y2="118.35382907247958" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="258.75" cy="122.51932634081264" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="258.75" y1="116.51932634081264" x2="258.75" y2="122.51932634081264" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="272.5" cy="125.54665949281292" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="272.5" y1="119.54665949281292" x2="272.5" y2="125.54665949281292" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="286.25" cy="127.38403001891434" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="286.25" y1="121.38403001891434" x2="286.25" y2="127.38403001891434" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="300" cy="128" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="300" y1="122" x2="300" y2="128" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="313.75" cy="127.38403001891436" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="313.75" y1="121.38403001891436" x2="313.75" y2="127.38403001891436" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="327.5" cy="125.54665949281292" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="327.5" y1="119.54665949281292" x2="327.5" y2="125.54665949281292" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="341.25" cy="122.51932634081264" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="341.25" y1="116.51932634081264" x2="341.25" y2="122.51932634081264" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="355" cy="118.35382907247958" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="355" y1="112.35382907247958" x2="355" y2="118.35382907247958" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="368.75" cy="113.12144050096893" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="368.75" y1="107.12144050096893" x2="368.75" y2="113.12144050096893" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="382.5" cy="106.91168824543144" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="382.5" y1="100.91168824543144" x2="382.5" y2="106.91168824543144" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="396.25" cy="99.8308228886279" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="396.25" y1="93.8308228886279" x2="396.25" y2="99.8308228886279" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="410" cy="92" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="410" y1="86" x2="410" y2="92" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="423.75" cy="83.55320713028647" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="423.75" y1="77.55320713028647" x2="423.75" y2="83.55320713028647" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="437.5" cy="74.63497124738151" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="437.5" y1="68.63497124738151" x2="437.5" y2="74.63497124738151" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="451.25" cy="65.39788583984371" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="451.25" y1="59.39788583984371" x2="451.25" y2="65.39788583984371" stroke="#334155" stroke-width="1"/>
+        
+          <circle cx="465" cy="56.00000000000001" r="5" fill="url(#silverGrad)" stroke="#334155" stroke-width="0.8"/>
+          <line x1="465" y1="50.00000000000001" x2="465" y2="56.00000000000001" stroke="#334155" stroke-width="1"/>
+        
+    </g>
+  </g>
+  <text x="300" y="560" font-family="'Cormorant Garamond', Georgia, serif" font-size="14" font-weight="600" fill="#64748B" letter-spacing="4" text-anchor="middle">VADDI JEWELLERY • TRADITIONAL STERLING SILVER PAYAL (PAIR)</text>
+</svg>

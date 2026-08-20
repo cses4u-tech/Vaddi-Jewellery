@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f8fafc"/><stop offset="100%" stop-color="#e2e8f0"/>
+    </radialGradient>
+    <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/><stop offset="30%" stop-color="#E2E8F0"/><stop offset="60%" stop-color="#94A3B8"/><stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#1E293B" flood-opacity="0.22"/></filter>
+  </defs>
+  <rect width="600" height="600" fill="url(#bgGlow)"/>
+  <g filter="url(#shadow)" transform="translate(300, 270)">
+    <!-- Lotus Pedestal -->
+    <path d="M -110 160 Q 0 120 110 160 L 130 190 L -130 190 Z" fill="url(#silverGrad)" stroke="#475569" stroke-width="2"/>
+    <ellipse cx="0" cy="140" rx="90" ry="25" fill="#E2E8F0" stroke="#334155" stroke-width="1.5"/>
+    <!-- Lotus Petals -->
+    <path d="M -80 140 Q -70 105 -60 140 Z" fill="url(#silverGrad)" stroke="#475569" stroke-width="1"/><path d="M -60 140 Q -50 105 -40 140 Z" fill="url(#silverGrad)" stroke="#475569" stroke-width="1"/><path d="M -40 140 Q -30 105 -20 140 Z" fill="url(#silverGrad)" stroke="#475569" stroke-width="1"/><path d="M -20 140 Q -10 105 0 140 Z" fill="url(#silverGrad)" stroke="#475569" stroke-width="1"/><path d="M 0 140 Q 10 105 20 140 Z" fill="url(#silverGrad)" stroke="#475569" stroke-width="1"/><path d="M 20 140 Q 30 105 40 140 Z" fill="url(#silverGrad)" stroke="#475569" stroke-width="1"/><path d="M 40 140 Q 50 105 60 140 Z" fill="url(#silverGrad)" stroke="#475569" stroke-width="1"/><path d="M 60 140 Q 70 105 80 140 Z" fill="url(#silverGrad)" stroke="#475569" stroke-width="1"/><path d="M 80 140 Q 90 105 100 140 Z" fill="url(#silverGrad)" stroke="#475569" stroke-width="1"/>
+
+    <!-- Prabhavali (Silver Arch) -->
+    <path d="M -100 120 C -100 -120 100 -120 100 120" fill="none" stroke="url(#silverGrad)" stroke-width="14"/>
+    <circle cx="0" cy="-125" r="9" fill="url(#silverGrad)" stroke="#334155" stroke-width="1"/>
+
+    <!-- Goddess Lakshmi Figure -->
+    <ellipse cx="0" cy="80" rx="45" ry="50" fill="url(#silverGrad)" stroke="#334155" stroke-width="2"/>
+    <ellipse cx="0" cy="20" rx="35" ry="30" fill="url(#silverGrad)" stroke="#334155" stroke-width="1.5"/>
+    <circle cx="0" cy="-30" r="22" fill="#E2E8F0" stroke="#334155" stroke-width="1.5"/>
+    
+    <!-- Grand Silver Mukut (Crown) -->
+    <path d="M -22 -50 L 0 -105 L 22 -50 Z" fill="url(#silverGrad)" stroke="#334155" stroke-width="2"/>
+    
+    <!-- 4 Arms with lotuses & blessing posture -->
+    <circle cx="-55" cy="-10" r="14" fill="url(#silverGrad)" stroke="#334155" stroke-width="1"/>
+    <circle cx="55" cy="-10" r="14" fill="url(#silverGrad)" stroke="#334155" stroke-width="1"/>
+    <!-- Showering coins from palm -->
+    <circle cx="-35" cy="50" r="5" fill="#CBD5E1"/>
+    <circle cx="-35" cy="65" r="5" fill="#CBD5E1"/>
+    <circle cx="-35" cy="80" r="5" fill="#CBD5E1"/>
+  </g>
+  <text x="300" y="560" font-family="'Cormorant Garamond', Georgia, serif" font-size="14" font-weight="600" fill="#64748B" letter-spacing="4" text-anchor="middle">VADDI JEWELLERY • 92.5 STERLING SILVER MAHALAKSHMI IDOL</text>
+</svg>

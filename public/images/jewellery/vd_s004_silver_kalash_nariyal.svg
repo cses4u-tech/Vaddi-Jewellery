@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f8fafc"/><stop offset="100%" stop-color="#e2e8f0"/>
+    </radialGradient>
+    <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/><stop offset="35%" stop-color="#F1F5F9"/><stop offset="70%" stop-color="#94A3B8"/><stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="10" stdDeviation="15" flood-color="#1E293B" flood-opacity="0.22"/></filter>
+  </defs>
+  <rect width="600" height="600" fill="url(#bgGlow)"/>
+  <g filter="url(#shadow)" transform="translate(300, 290)">
+    <!-- Base -->
+    <ellipse cx="0" cy="140" rx="70" ry="20" fill="url(#silverGrad)" stroke="#334155" stroke-width="2"/>
+    
+    <!-- Pot Body -->
+    <path d="M -85 40 C -95 120 95 120 85 40 C 70 -10 -70 -10 -85 40 Z" fill="url(#silverGrad)" stroke="#334155" stroke-width="2"/>
+    <ellipse cx="0" cy="25" rx="80" ry="25" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+    <ellipse cx="0" cy="55" rx="82" ry="22" fill="none" stroke="#64748B" stroke-width="1.5" stroke-dasharray="6,4"/>
+    
+    <!-- Neck & Rim -->
+    <ellipse cx="0" cy="-25" rx="55" ry="18" fill="url(#silverGrad)" stroke="#334155" stroke-width="2"/>
+    <ellipse cx="0" cy="-35" rx="60" ry="18" fill="url(#silverGrad)" stroke="#334155" stroke-width="2"/>
+    
+    <!-- Mango Leaves (Silver carved) -->
+    <path d="M -50 -35 L -85 -95 L -35 -50 Z" fill="url(#silverGrad)" stroke="#334155" stroke-width="1.5"/>
+    <path d="M 50 -35 L 85 -95 L 35 -50 Z" fill="url(#silverGrad)" stroke="#334155" stroke-width="1.5"/>
+    <path d="M -25 -40 L -45 -120 L 0 -55 Z" fill="url(#silverGrad)" stroke="#334155" stroke-width="1.5"/>
+    <path d="M 25 -40 L 45 -120 L 0 -55 Z" fill="url(#silverGrad)" stroke="#334155" stroke-width="1.5"/>
+    <path d="M 0 -45 L 0 -135 L 15 -60 Z" fill="url(#silverGrad)" stroke="#334155" stroke-width="1.5"/>
+    
+    <!-- Silver Coconut (Nariyal) on Top -->
+    <ellipse cx="0" cy="-70" rx="30" ry="38" fill="url(#silverGrad)" stroke="#334155" stroke-width="2"/>
+    <circle cx="0" cy="-75" r="4" fill="#64748B"/>
+    <circle cx="-10" cy="-68" r="3.5" fill="#64748B"/>
+    <circle cx="10" cy="-68" r="3.5" fill="#64748B"/>
+  </g>
+  <text x="300" y="560" font-family="'Cormorant Garamond', Georgia, serif" font-size="14" font-weight="600" fill="#64748B" letter-spacing="4" text-anchor="middle">VADDI JEWELLERY • 92.5 SILVER KALASH &amp; NARIYAL</text>
+</svg>

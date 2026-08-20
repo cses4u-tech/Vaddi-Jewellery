@@ -1,0 +1,270 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff9ed" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#f5efe0" stop-opacity="1"/>
+    </radialGradient>
+    <linearGradient id="goldGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF2A3"/>
+      <stop offset="25%" stop-color="#E5B842"/>
+      <stop offset="50%" stop-color="#FCE183"/>
+      <stop offset="75%" stop-color="#BA8B1E"/>
+      <stop offset="100%" stop-color="#916508"/>
+    </linearGradient>
+    <linearGradient id="goldGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFEBB0"/>
+      <stop offset="35%" stop-color="#D9A426"/>
+      <stop offset="70%" stop-color="#FFF0BA"/>
+      <stop offset="100%" stop-color="#8C5C00"/>
+    </linearGradient>
+    <linearGradient id="rubyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF4D6D"/>
+      <stop offset="50%" stop-color="#C9184A"/>
+      <stop offset="100%" stop-color="#590D22"/>
+    </linearGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#52B788"/>
+      <stop offset="50%" stop-color="#1B4332"/>
+      <stop offset="100%" stop-color="#081C15"/>
+    </linearGradient>
+    <radialGradient id="pearlGrad" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="70%" stop-color="#F4F1EA"/>
+      <stop offset="100%" stop-color="#D6CFC4"/>
+    </radialGradient>
+    <filter id="dropShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#8a6d2b" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <rect width="600" height="600" fill="url(#bgGlow)"/>
+  
+  <g filter="url(#dropShadow)">
+    <!-- Main Arch of the Haram -->
+    <path d="M 170 120 C 170 300, 200 380, 300 420 C 400 380, 430 300, 430 120" fill="none" stroke="url(#goldGrad1)" stroke-width="18" stroke-linecap="round"/>
+    <path d="M 185 130 C 185 285, 215 365, 300 400 C 385 365, 415 285, 415 130" fill="none" stroke="url(#goldGrad2)" stroke-width="8" stroke-linecap="round"/>
+    
+    <!-- Kasu / Coins along the haram -->
+    
+        <g transform="translate(95.09180318270688, 252.85786918657928) rotate(-74.25752635360159)">
+          <circle cx="0" cy="0" r="14" fill="url(#goldGrad1)" stroke="#8C5C00" stroke-width="1"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#FFF0BA" stroke-width="1"/>
+          <!-- Lakshmi motif inside coin -->
+          <circle cx="0" cy="-3" r="3.5" fill="#FFE599"/>
+          <path d="M -5 6 Q 0 0 5 6 Z" fill="#FFE599"/>
+          <circle cx="0" cy="18" r="3.5" fill="url(#pearlGrad)" stroke="#B38F4D" stroke-width="0.5"/>
+          <circle cx="0" cy="-8" r="2.5" fill="url(#rubyGrad)"/>
+        </g>
+      
+        <g transform="translate(103.66802070204696, 285.70203929483773) rotate(-66.44094463216985)">
+          <circle cx="0" cy="0" r="14" fill="url(#goldGrad1)" stroke="#8C5C00" stroke-width="1"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#FFF0BA" stroke-width="1"/>
+          <!-- Lakshmi motif inside coin -->
+          <circle cx="0" cy="-3" r="3.5" fill="#FFE599"/>
+          <path d="M -5 6 Q 0 0 5 6 Z" fill="#FFE599"/>
+          <circle cx="0" cy="18" r="3.5" fill="url(#pearlGrad)" stroke="#B38F4D" stroke-width="0.5"/>
+          <circle cx="0" cy="-8" r="2.5" fill="url(#rubyGrad)"/>
+        </g>
+      
+        <g transform="translate(116.20308139916173, 316.8181112359154) rotate(-58.62436291073811)">
+          <circle cx="0" cy="0" r="14" fill="url(#goldGrad1)" stroke="#8C5C00" stroke-width="1"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#FFF0BA" stroke-width="1"/>
+          <!-- Lakshmi motif inside coin -->
+          <circle cx="0" cy="-3" r="3.5" fill="#FFE599"/>
+          <path d="M -5 6 Q 0 0 5 6 Z" fill="#FFE599"/>
+          <circle cx="0" cy="18" r="3.5" fill="url(#pearlGrad)" stroke="#B38F4D" stroke-width="0.5"/>
+          <circle cx="0" cy="-8" r="2.5" fill="url(#rubyGrad)"/>
+        </g>
+      
+        <g transform="translate(132.4442279815245, 345.57865971942635) rotate(-50.80778118930636)">
+          <circle cx="0" cy="0" r="14" fill="url(#goldGrad1)" stroke="#8C5C00" stroke-width="1"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#FFF0BA" stroke-width="1"/>
+          <!-- Lakshmi motif inside coin -->
+          <circle cx="0" cy="-3" r="3.5" fill="#FFE599"/>
+          <path d="M -5 6 Q 0 0 5 6 Z" fill="#FFE599"/>
+          <circle cx="0" cy="18" r="3.5" fill="url(#pearlGrad)" stroke="#B38F4D" stroke-width="0.5"/>
+          <circle cx="0" cy="-8" r="2.5" fill="url(#rubyGrad)"/>
+        </g>
+      
+        <g transform="translate(152.06397354365643, 371.4037562917375) rotate(-42.99119946787461)">
+          <circle cx="0" cy="0" r="14" fill="url(#goldGrad1)" stroke="#8C5C00" stroke-width="1"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#FFF0BA" stroke-width="1"/>
+          <!-- Lakshmi motif inside coin -->
+          <circle cx="0" cy="-3" r="3.5" fill="#FFE599"/>
+          <path d="M -5 6 Q 0 0 5 6 Z" fill="#FFE599"/>
+          <circle cx="0" cy="18" r="3.5" fill="url(#pearlGrad)" stroke="#B38F4D" stroke-width="0.5"/>
+          <circle cx="0" cy="-8" r="2.5" fill="url(#rubyGrad)"/>
+        </g>
+      
+        <g transform="translate(174.66670502167423, 393.77266302851126) rotate(-35.17461774644286)">
+          <circle cx="0" cy="0" r="14" fill="url(#goldGrad1)" stroke="#8C5C00" stroke-width="1"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#FFF0BA" stroke-width="1"/>
+          <!-- Lakshmi motif inside coin -->
+          <circle cx="0" cy="-3" r="3.5" fill="#FFE599"/>
+          <path d="M -5 6 Q 0 0 5 6 Z" fill="#FFE599"/>
+          <circle cx="0" cy="18" r="3.5" fill="url(#pearlGrad)" stroke="#B38F4D" stroke-width="0.5"/>
+          <circle cx="0" cy="-8" r="2.5" fill="url(#rubyGrad)"/>
+        </g>
+      
+        <g transform="translate(199.79666034548222, 412.2343327078646) rotate(-27.358036025011117)">
+          <circle cx="0" cy="0" r="14" fill="url(#goldGrad1)" stroke="#8C5C00" stroke-width="1"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#FFF0BA" stroke-width="1"/>
+          <!-- Lakshmi motif inside coin -->
+          <circle cx="0" cy="-3" r="3.5" fill="#FFE599"/>
+          <path d="M -5 6 Q 0 0 5 6 Z" fill="#FFE599"/>
+          <circle cx="0" cy="18" r="3.5" fill="url(#pearlGrad)" stroke="#B38F4D" stroke-width="0.5"/>
+          <circle cx="0" cy="-8" r="2.5" fill="url(#rubyGrad)"/>
+        </g>
+      
+        <g transform="translate(226.94711843710226, 426.4165037383758) rotate(-19.54145430357937)">
+          <circle cx="0" cy="0" r="14" fill="url(#goldGrad1)" stroke="#8C5C00" stroke-width="1"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#FFF0BA" stroke-width="1"/>
+          <!-- Lakshmi motif inside coin -->
+          <circle cx="0" cy="-3" r="3.5" fill="#FFE599"/>
+          <path d="M -5 6 Q 0 0 5 6 Z" fill="#FFE599"/>
+          <circle cx="0" cy="18" r="3.5" fill="url(#pearlGrad)" stroke="#B38F4D" stroke-width="0.5"/>
+          <circle cx="0" cy="-8" r="2.5" fill="url(#rubyGrad)"/>
+        </g>
+      
+        <g transform="translate(255.57061674777478, 436.03320645157334) rotate(-11.724872582147624)">
+          <circle cx="0" cy="0" r="14" fill="url(#goldGrad1)" stroke="#8C5C00" stroke-width="1"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#FFF0BA" stroke-width="1"/>
+          <!-- Lakshmi motif inside coin -->
+          <circle cx="0" cy="-3" r="3.5" fill="#FFE599"/>
+          <path d="M -5 6 Q 0 0 5 6 Z" fill="#FFE599"/>
+          <circle cx="0" cy="18" r="3.5" fill="url(#pearlGrad)" stroke="#B38F4D" stroke-width="0.5"/>
+          <circle cx="0" cy="-8" r="2.5" fill="url(#rubyGrad)"/>
+        </g>
+      
+        <g transform="translate(285.0899903071447, 440.89052940182853) rotate(-3.9082908607158777)">
+          <circle cx="0" cy="0" r="14" fill="url(#goldGrad1)" stroke="#8C5C00" stroke-width="1"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#FFF0BA" stroke-width="1"/>
+          <!-- Lakshmi motif inside coin -->
+          <circle cx="0" cy="-3" r="3.5" fill="#FFE599"/>
+          <path d="M -5 6 Q 0 0 5 6 Z" fill="#FFE599"/>
+          <circle cx="0" cy="18" r="3.5" fill="url(#pearlGrad)" stroke="#B38F4D" stroke-width="0.5"/>
+          <circle cx="0" cy="-8" r="2.5" fill="url(#rubyGrad)"/>
+        </g>
+      
+        <g transform="translate(314.9100096928553, 440.89052940182853) rotate(3.9082908607158777)">
+          <circle cx="0" cy="0" r="14" fill="url(#goldGrad1)" stroke="#8C5C00" stroke-width="1"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#FFF0BA" stroke-width="1"/>
+          <!-- Lakshmi motif inside coin -->
+          <circle cx="0" cy="-3" r="3.5" fill="#FFE599"/>
+          <path d="M -5 6 Q 0 0 5 6 Z" fill="#FFE599"/>
+          <circle cx="0" cy="18" r="3.5" fill="url(#pearlGrad)" stroke="#B38F4D" stroke-width="0.5"/>
+          <circle cx="0" cy="-8" r="2.5" fill="url(#rubyGrad)"/>
+        </g>
+      
+        <g transform="translate(344.4293832522252, 436.0332064515734) rotate(11.724872582147615)">
+          <circle cx="0" cy="0" r="14" fill="url(#goldGrad1)" stroke="#8C5C00" stroke-width="1"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#FFF0BA" stroke-width="1"/>
+          <!-- Lakshmi motif inside coin -->
+          <circle cx="0" cy="-3" r="3.5" fill="#FFE599"/>
+          <path d="M -5 6 Q 0 0 5 6 Z" fill="#FFE599"/>
+          <circle cx="0" cy="18" r="3.5" fill="url(#pearlGrad)" stroke="#B38F4D" stroke-width="0.5"/>
+          <circle cx="0" cy="-8" r="2.5" fill="url(#rubyGrad)"/>
+        </g>
+      
+        <g transform="translate(373.0528815628977, 426.4165037383758) rotate(19.54145430357937)">
+          <circle cx="0" cy="0" r="14" fill="url(#goldGrad1)" stroke="#8C5C00" stroke-width="1"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#FFF0BA" stroke-width="1"/>
+          <!-- Lakshmi motif inside coin -->
+          <circle cx="0" cy="-3" r="3.5" fill="#FFE599"/>
+          <path d="M -5 6 Q 0 0 5 6 Z" fill="#FFE599"/>
+          <circle cx="0" cy="18" r="3.5" fill="url(#pearlGrad)" stroke="#B38F4D" stroke-width="0.5"/>
+          <circle cx="0" cy="-8" r="2.5" fill="url(#rubyGrad)"/>
+        </g>
+      
+        <g transform="translate(400.2033396545177, 412.2343327078646) rotate(27.358036025011106)">
+          <circle cx="0" cy="0" r="14" fill="url(#goldGrad1)" stroke="#8C5C00" stroke-width="1"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#FFF0BA" stroke-width="1"/>
+          <!-- Lakshmi motif inside coin -->
+          <circle cx="0" cy="-3" r="3.5" fill="#FFE599"/>
+          <path d="M -5 6 Q 0 0 5 6 Z" fill="#FFE599"/>
+          <circle cx="0" cy="18" r="3.5" fill="url(#pearlGrad)" stroke="#B38F4D" stroke-width="0.5"/>
+          <circle cx="0" cy="-8" r="2.5" fill="url(#rubyGrad)"/>
+        </g>
+      
+        <g transform="translate(425.33329497832574, 393.77266302851126) rotate(35.17461774644286)">
+          <circle cx="0" cy="0" r="14" fill="url(#goldGrad1)" stroke="#8C5C00" stroke-width="1"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#FFF0BA" stroke-width="1"/>
+          <!-- Lakshmi motif inside coin -->
+          <circle cx="0" cy="-3" r="3.5" fill="#FFE599"/>
+          <path d="M -5 6 Q 0 0 5 6 Z" fill="#FFE599"/>
+          <circle cx="0" cy="18" r="3.5" fill="url(#pearlGrad)" stroke="#B38F4D" stroke-width="0.5"/>
+          <circle cx="0" cy="-8" r="2.5" fill="url(#rubyGrad)"/>
+        </g>
+      
+        <g transform="translate(447.93602645634354, 371.4037562917375) rotate(42.991199467874594)">
+          <circle cx="0" cy="0" r="14" fill="url(#goldGrad1)" stroke="#8C5C00" stroke-width="1"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#FFF0BA" stroke-width="1"/>
+          <!-- Lakshmi motif inside coin -->
+          <circle cx="0" cy="-3" r="3.5" fill="#FFE599"/>
+          <path d="M -5 6 Q 0 0 5 6 Z" fill="#FFE599"/>
+          <circle cx="0" cy="18" r="3.5" fill="url(#pearlGrad)" stroke="#B38F4D" stroke-width="0.5"/>
+          <circle cx="0" cy="-8" r="2.5" fill="url(#rubyGrad)"/>
+        </g>
+      
+        <g transform="translate(467.5557720184755, 345.57865971942635) rotate(50.80778118930636)">
+          <circle cx="0" cy="0" r="14" fill="url(#goldGrad1)" stroke="#8C5C00" stroke-width="1"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#FFF0BA" stroke-width="1"/>
+          <!-- Lakshmi motif inside coin -->
+          <circle cx="0" cy="-3" r="3.5" fill="#FFE599"/>
+          <path d="M -5 6 Q 0 0 5 6 Z" fill="#FFE599"/>
+          <circle cx="0" cy="18" r="3.5" fill="url(#pearlGrad)" stroke="#B38F4D" stroke-width="0.5"/>
+          <circle cx="0" cy="-8" r="2.5" fill="url(#rubyGrad)"/>
+        </g>
+      
+        <g transform="translate(483.79691860083824, 316.81811123591547) rotate(58.62436291073809)">
+          <circle cx="0" cy="0" r="14" fill="url(#goldGrad1)" stroke="#8C5C00" stroke-width="1"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#FFF0BA" stroke-width="1"/>
+          <!-- Lakshmi motif inside coin -->
+          <circle cx="0" cy="-3" r="3.5" fill="#FFE599"/>
+          <path d="M -5 6 Q 0 0 5 6 Z" fill="#FFE599"/>
+          <circle cx="0" cy="18" r="3.5" fill="url(#pearlGrad)" stroke="#B38F4D" stroke-width="0.5"/>
+          <circle cx="0" cy="-8" r="2.5" fill="url(#rubyGrad)"/>
+        </g>
+      
+        <g transform="translate(496.331979297953, 285.70203929483773) rotate(66.44094463216985)">
+          <circle cx="0" cy="0" r="14" fill="url(#goldGrad1)" stroke="#8C5C00" stroke-width="1"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#FFF0BA" stroke-width="1"/>
+          <!-- Lakshmi motif inside coin -->
+          <circle cx="0" cy="-3" r="3.5" fill="#FFE599"/>
+          <path d="M -5 6 Q 0 0 5 6 Z" fill="#FFE599"/>
+          <circle cx="0" cy="18" r="3.5" fill="url(#pearlGrad)" stroke="#B38F4D" stroke-width="0.5"/>
+          <circle cx="0" cy="-8" r="2.5" fill="url(#rubyGrad)"/>
+        </g>
+      
+
+    <!-- Centerpiece Goddess Lakshmi Pendant -->
+    <g transform="translate(300, 440)">
+      <!-- Gopuram / Temple arch pendant -->
+      <path d="M 0 -35 L 35 -10 L 40 30 L 0 55 L -40 30 L -35 -10 Z" fill="url(#goldGrad1)" stroke="#6E4400" stroke-width="2"/>
+      <path d="M 0 -28 L 28 -8 L 32 25 L 0 46 L -32 25 L -28 -8 Z" fill="url(#goldGrad2)"/>
+      
+      <!-- Goddess Lakshmi Figure -->
+      <circle cx="0" cy="0" r="12" fill="#FFE599"/>
+      <path d="M -16 18 Q 0 4 16 18 L 12 32 L -12 32 Z" fill="#FFCC00" stroke="#8C5C00" stroke-width="1"/>
+      <circle cx="0" cy="-12" r="5" fill="#FFE599"/>
+      <path d="M -8 -15 Q 0 -22 8 -15 Z" fill="url(#goldGrad1)"/> <!-- Crown -->
+      
+      <!-- Gemstone accents -->
+      <circle cx="0" cy="-28" r="4.5" fill="url(#rubyGrad)"/>
+      <circle cx="-28" cy="-5" r="4" fill="url(#emeraldGrad)"/>
+      <circle cx="28" cy="-5" r="4" fill="url(#emeraldGrad)"/>
+      <circle cx="-32" cy="22" r="3.5" fill="url(#rubyGrad)"/>
+      <circle cx="32" cy="22" r="3.5" fill="url(#rubyGrad)"/>
+
+      <!-- Hanging pearls -->
+      <circle cx="-20" cy="45" r="5.5" fill="url(#pearlGrad)" stroke="#C5A869" stroke-width="0.7"/>
+      <circle cx="0" cy="65" r="7" fill="url(#pearlGrad)" stroke="#C5A869" stroke-width="0.7"/>
+      <circle cx="20" cy="45" r="5.5" fill="url(#pearlGrad)" stroke="#C5A869" stroke-width="0.7"/>
+    </g>
+
+    <!-- Top back dori / rope ties -->
+    <path d="M 170 120 Q 210 50 300 45 Q 390 50 430 120" fill="none" stroke="#D4AF37" stroke-width="6" stroke-dasharray="6,4"/>
+  </g>
+  
+  <text x="300" y="570" font-family="'Cormorant Garamond', Georgia, serif" font-size="14" font-weight="600" fill="#9A9483" letter-spacing="4" text-anchor="middle">VADDI JEWELLERY • PRODDATUR • 22K 916</text>
+</svg>

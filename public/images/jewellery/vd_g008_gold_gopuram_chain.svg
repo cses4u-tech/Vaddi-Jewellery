@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fffaf0"/><stop offset="100%" stop-color="#f4eedf"/>
+    </radialGradient>
+    <linearGradient id="goldShiny" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF3A8"/><stop offset="30%" stop-color="#DDA92B"/><stop offset="60%" stop-color="#FFF1B0"/><stop offset="100%" stop-color="#946505"/>
+    </linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#42300B" flood-opacity="0.2"/></filter>
+  </defs>
+  <rect width="600" height="600" fill="url(#bgGlow)"/>
+  <g filter="url(#shadow)">
+    <!-- Triple Layered Handcrafted Gold Chain -->
+    <path d="M 170 120 C 170 340, 230 430, 300 430 C 370 430, 430 340, 430 120" fill="none" stroke="url(#goldShiny)" stroke-width="12" stroke-linecap="round"/>
+    <path d="M 195 130 C 195 320, 245 390, 300 390 C 355 390, 405 320, 405 130" fill="none" stroke="url(#goldShiny)" stroke-width="8" stroke-linecap="round"/>
+    <path d="M 220 140 C 220 300, 260 350, 300 350 C 340 350, 380 300, 380 140" fill="none" stroke="url(#goldShiny)" stroke-width="6" stroke-linecap="round"/>
+    
+    <!-- Intricate links -->
+    <circle cx="107.25526434199807" cy="261.38745754368637" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="114.51096933306775" cy="286.0106173196941" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="124.13673796188874" cy="309.53478684362597" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="136.00957813490956" cy="331.6593888867559" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="149.9777860739081" cy="352.1017290244399" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="165.862884692656" cy="370.60060772991" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="183.4619040662848" cy="386.9196578196116" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="202.54997485493357" cy="400.85036460628163" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="222.8832015445207" cy="412.21473017012636" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="244.20177879215416" cy="420.8675477056969" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="266.23331105745325" cy="426.69825688426954" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="288.6962931035951" cy="429.6323565250642" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="311.3037068964049" cy="429.6323565250642" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="333.7666889425468" cy="426.69825688426954" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="355.7982212078458" cy="420.8675477056969" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="377.1167984554793" cy="412.21473017012636" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="397.4500251450665" cy="400.85036460628163" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="416.5380959337152" cy="386.9196578196116" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="434.137115307344" cy="370.60060772991" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="450.0222139260919" cy="352.1017290244399" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="463.9904218650904" cy="331.6593888867559" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="475.86326203811126" cy="309.53478684362597" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/><circle cx="485.4890306669323" cy="286.01061731969406" r="6" fill="#FFF2A3" stroke="#8A5B02" stroke-width="1.5"/>
+  </g>
+  <text x="300" y="560" font-family="'Cormorant Garamond', Georgia, serif" font-size="14" font-weight="600" fill="#9A9483" letter-spacing="4" text-anchor="middle">VADDI JEWELLERY • 22K HANDCRAFTED MOPU CHAIN</text>
+</svg>

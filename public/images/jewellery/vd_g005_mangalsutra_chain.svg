@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fffaf0"/><stop offset="100%" stop-color="#f4eedf"/>
+    </radialGradient>
+    <linearGradient id="goldShiny" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF3A8"/><stop offset="30%" stop-color="#DDA92B"/><stop offset="60%" stop-color="#FFF1B0"/><stop offset="100%" stop-color="#946505"/>
+    </linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#42300B" flood-opacity="0.2"/></filter>
+  </defs>
+  <rect width="600" height="600" fill="url(#bgGlow)"/>
+  <g filter="url(#shadow)">
+    <!-- Black beads and gold beads chain -->
+    <path d="M 140 100 C 140 340, 200 420, 300 420 C 400 420, 460 340, 460 100" fill="none" stroke="#222" stroke-width="4"/>
+    <path d="M 155 100 C 155 330, 210 405, 300 405 C 390 405, 445 330, 445 100" fill="none" stroke="#DDA92B" stroke-width="3"/>
+    
+    <!-- Beads alternating -->
+    <circle cx="95.69871470742535" cy="235.87846127774245" r="4.5" fill="url(#goldShiny)" stroke="#8A5B02" stroke-width="0.5"/><circle cx="100.00443337112142" cy="253.65185148609496" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="105.47747312794067" cy="270.99535536628275" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="112.08588929601177" cy="287.8077434848278" r="4.5" fill="url(#goldShiny)" stroke="#8A5B02" stroke-width="0.5"/><circle cx="119.79111030239852" cy="303.99088639012575" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="128.54816281514402" cy="319.45032736803637" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="138.30593424068414" cy="334.0958337606784" r="4.5" fill="url(#goldShiny)" stroke="#8A5B02" stroke-width="0.5"/><circle cx="149.0074710545038" cy="347.8419236305281" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="160.59031122375814" cy="360.60836469582273" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="172.9868487815962" cy="372.32064262511574" r="4.5" fill="url(#goldShiny)" stroke="#8A5B02" stroke-width="0.5"/><circle cx="186.12472842526364" cy="382.91039595767165" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="199.92726783481976" cy="392.315815111186" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="214.31390524750634" cy="400.48200314792854" r="4.5" fill="url(#goldShiny)" stroke="#8A5B02" stroke-width="0.5"/><circle cx="229.20066967539591" cy="407.3612961936125" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="244.50067102178315" cy="412.9135416387908" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="260.12460723564004" cy="417.1063324989907" r="4.5" fill="url(#goldShiny)" stroke="#8A5B02" stroke-width="0.5"/><circle cx="275.98128554400944" cy="419.9151965656894" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="291.97815472004044" cy="421.3237392441066" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="308.02184527995956" cy="421.3237392441066" r="4.5" fill="url(#goldShiny)" stroke="#8A5B02" stroke-width="0.5"/><circle cx="324.0187144559906" cy="419.9151965656894" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="339.87539276435996" cy="417.1063324989907" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="355.4993289782169" cy="412.9135416387908" r="4.5" fill="url(#goldShiny)" stroke="#8A5B02" stroke-width="0.5"/><circle cx="370.79933032460406" cy="407.3612961936125" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="385.6860947524937" cy="400.48200314792854" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="400.07273216518024" cy="392.315815111186" r="4.5" fill="url(#goldShiny)" stroke="#8A5B02" stroke-width="0.5"/><circle cx="413.8752715747364" cy="382.91039595767165" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="427.0131512184038" cy="372.32064262511574" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="439.4096887762419" cy="360.60836469582273" r="4.5" fill="url(#goldShiny)" stroke="#8A5B02" stroke-width="0.5"/><circle cx="450.9925289454962" cy="347.8419236305281" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="461.6940657593159" cy="334.0958337606784" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="471.451837184856" cy="319.45032736803637" r="4.5" fill="url(#goldShiny)" stroke="#8A5B02" stroke-width="0.5"/><circle cx="480.2088896976015" cy="303.9908863901257" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="487.91411070398823" cy="287.8077434848278" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/><circle cx="494.5225268720593" cy="270.99535536628275" r="4.5" fill="url(#goldShiny)" stroke="#8A5B02" stroke-width="0.5"/><circle cx="499.9955666288786" cy="253.65185148609496" r="3.5" fill="#1A1A1A" stroke="#333" stroke-width="0.5"/>
+
+    <!-- Double Cup / Thali / Vati Centerpiece (South Indian Telugu Tradition) -->
+    <g transform="translate(300, 410)">
+      <!-- Left Vati / Bottu -->
+      <g transform="translate(-25, 20)">
+        <ellipse cx="0" cy="0" rx="18" ry="22" fill="url(#goldShiny)" stroke="#7A5000" stroke-width="1.5"/>
+        <ellipse cx="0" cy="0" rx="12" ry="15" fill="none" stroke="#FFF7CC" stroke-width="1"/>
+        <circle cx="0" cy="0" r="4" fill="#C9184A"/>
+        <circle cx="0" cy="30" r="5" fill="url(#goldShiny)"/>
+      </g>
+      <!-- Right Vati / Bottu -->
+      <g transform="translate(25, 20)">
+        <ellipse cx="0" cy="0" rx="18" ry="22" fill="url(#goldShiny)" stroke="#7A5000" stroke-width="1.5"/>
+        <ellipse cx="0" cy="0" rx="12" ry="15" fill="none" stroke="#FFF7CC" stroke-width="1"/>
+        <circle cx="0" cy="0" r="4" fill="#C9184A"/>
+        <circle cx="0" cy="30" r="5" fill="url(#goldShiny)"/>
+      </g>
+      <!-- Center Red Coral / Gold Bead Link -->
+      <circle cx="0" cy="15" r="7" fill="url(#goldShiny)" stroke="#8A5B02" stroke-width="1"/>
+    </g>
+  </g>
+  <text x="300" y="560" font-family="'Cormorant Garamond', Georgia, serif" font-size="14" font-weight="600" fill="#9A9483" letter-spacing="4" text-anchor="middle">VADDI JEWELLERY • SACRED 22K MANGALSUTRA</text>
+</svg>

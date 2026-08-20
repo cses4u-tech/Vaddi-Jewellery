@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fffcf5"/><stop offset="100%" stop-color="#f5eee0"/>
+    </radialGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF2A3"/><stop offset="35%" stop-color="#DBA82E"/><stop offset="70%" stop-color="#FFF0BA"/><stop offset="100%" stop-color="#8A5B02"/>
+    </linearGradient>
+    <linearGradient id="rubyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF5475"/><stop offset="70%" stop-color="#A80F33"/><stop offset="100%" stop-color="#4F0314"/>
+    </linearGradient>
+    <radialGradient id="pearlGrad" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#FFFFFF"/><stop offset="70%" stop-color="#EDE7DC"/><stop offset="100%" stop-color="#BFB7A5"/>
+    </radialGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="6" stdDeviation="9" flood-color="#6B4B0B" flood-opacity="0.2"/></filter>
+  </defs>
+  <rect width="600" height="600" fill="url(#bgGlow)"/>
+  
+  <g filter="url(#shadow)">
+    <!-- Left Jhumka -->
+    <g transform="translate(200, 180)">
+      <!-- Top Stud (Peacock / floral motif) -->
+      <circle cx="0" cy="0" r="26" fill="url(#goldGrad)" stroke="#7A5000" stroke-width="1.5"/>
+      <circle cx="0" cy="0" r="16" fill="url(#rubyGrad)"/>
+      <circle cx="0" cy="0" r="5" fill="#FFEAA7"/>
+      <!-- Connecting link -->
+      <rect x="-3" y="26" width="6" height="20" fill="url(#goldGrad)"/>
+      <!-- Bell / Dome -->
+      <path d="M -45 110 C -45 50 45 50 45 110 Z" fill="url(#goldGrad)" stroke="#7A5000" stroke-width="2"/>
+      <ellipse cx="0" cy="110" rx="45" ry="12" fill="#7A5000"/>
+      <!-- Dome filigree lines -->
+      <path d="M 0 50 L 0 110 M -22 62 L -28 110 M 22 62 L 28 110" stroke="#FFF2A3" stroke-width="2"/>
+      <!-- Hanging pearls from bottom rim -->
+      <circle cx="-36" cy="126" r="4.5" fill="url(#pearlGrad)"/><circle cx="-27" cy="126" r="4.5" fill="url(#pearlGrad)"/><circle cx="-18" cy="126" r="4.5" fill="url(#pearlGrad)"/><circle cx="-9" cy="126" r="4.5" fill="url(#pearlGrad)"/><circle cx="0" cy="126" r="4.5" fill="url(#pearlGrad)"/><circle cx="9" cy="126" r="4.5" fill="url(#pearlGrad)"/><circle cx="18" cy="126" r="4.5" fill="url(#pearlGrad)"/><circle cx="27" cy="126" r="4.5" fill="url(#pearlGrad)"/><circle cx="36" cy="126" r="4.5" fill="url(#pearlGrad)"/>
+      <!-- Center hanging bead -->
+      <circle cx="0" cy="142" r="7" fill="url(#rubyGrad)"/>
+    </g>
+
+    <!-- Right Jhumka -->
+    <g transform="translate(400, 180)">
+      <!-- Top Stud -->
+      <circle cx="0" cy="0" r="26" fill="url(#goldGrad)" stroke="#7A5000" stroke-width="1.5"/>
+      <circle cx="0" cy="0" r="16" fill="url(#rubyGrad)"/>
+      <circle cx="0" cy="0" r="5" fill="#FFEAA7"/>
+      <!-- Connecting link -->
+      <rect x="-3" y="26" width="6" height="20" fill="url(#goldGrad)"/>
+      <!-- Bell / Dome -->
+      <path d="M -45 110 C -45 50 45 50 45 110 Z" fill="url(#goldGrad)" stroke="#7A5000" stroke-width="2"/>
+      <ellipse cx="0" cy="110" rx="45" ry="12" fill="#7A5000"/>
+      <path d="M 0 50 L 0 110 M -22 62 L -28 110 M 22 62 L 28 110" stroke="#FFF2A3" stroke-width="2"/>
+      <!-- Hanging pearls -->
+      <circle cx="-36" cy="126" r="4.5" fill="url(#pearlGrad)"/><circle cx="-27" cy="126" r="4.5" fill="url(#pearlGrad)"/><circle cx="-18" cy="126" r="4.5" fill="url(#pearlGrad)"/><circle cx="-9" cy="126" r="4.5" fill="url(#pearlGrad)"/><circle cx="0" cy="126" r="4.5" fill="url(#pearlGrad)"/><circle cx="9" cy="126" r="4.5" fill="url(#pearlGrad)"/><circle cx="18" cy="126" r="4.5" fill="url(#pearlGrad)"/><circle cx="27" cy="126" r="4.5" fill="url(#pearlGrad)"/><circle cx="36" cy="126" r="4.5" fill="url(#pearlGrad)"/>
+      <circle cx="0" cy="142" r="7" fill="url(#rubyGrad)"/>
+    </g>
+  </g>
+  <text x="300" y="560" font-family="'Cormorant Garamond', Georgia, serif" font-size="14" font-weight="600" fill="#9A9483" letter-spacing="4" text-anchor="middle">VADDI JEWELLERY • TRADITIONAL 22K JHUMKAS</text>
+</svg>
