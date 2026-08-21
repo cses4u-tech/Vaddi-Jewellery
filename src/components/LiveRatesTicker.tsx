@@ -95,6 +95,9 @@ export const LiveRatesTicker: React.FC<LiveRatesTickerProps> = ({ settings, onRe
               <span className="text-sm font-extrabold text-amber-100">₹{rate24K.toLocaleString('en-IN')}</span>
               <span className="text-[10px] text-stone-400">/g</span>
             </div>
+            <span className="text-[9px] text-amber-300/80 font-medium block mt-0.5">
+              10g: ₹{(rate24K * 10).toLocaleString('en-IN')}
+            </span>
           </div>
 
           {/* 22K Gold (Hallmarked) */}
@@ -116,6 +119,9 @@ export const LiveRatesTicker: React.FC<LiveRatesTickerProps> = ({ settings, onRe
               <span className="text-sm font-extrabold text-[#FFF0BA]">₹{rate22K.toLocaleString('en-IN')}</span>
               <span className="text-[10px] text-amber-200/80">/g</span>
             </div>
+            <span className="text-[9px] text-[#E5D2A8] font-bold block mt-0.5">
+              10g: ₹{(rate22K * 10).toLocaleString('en-IN')}
+            </span>
           </div>
 
           {/* 18K Gold */}
@@ -132,6 +138,9 @@ export const LiveRatesTicker: React.FC<LiveRatesTickerProps> = ({ settings, onRe
               <span className="text-sm font-extrabold text-stone-100">₹{rate18K.toLocaleString('en-IN')}</span>
               <span className="text-[10px] text-stone-400">/g</span>
             </div>
+            <span className="text-[9px] text-stone-400 font-medium block mt-0.5">
+              10g: ₹{(rate18K * 10).toLocaleString('en-IN')}
+            </span>
           </div>
 
           {/* 92.5 Pure Silver */}
@@ -153,6 +162,9 @@ export const LiveRatesTicker: React.FC<LiveRatesTickerProps> = ({ settings, onRe
               <span className="text-sm font-extrabold text-slate-100">₹{rateSilver.toLocaleString('en-IN')}</span>
               <span className="text-[10px] text-slate-400">/g</span>
             </div>
+            <span className="text-[9px] text-slate-400 font-medium block mt-0.5">
+              10g: ₹{(rateSilver * 10).toLocaleString('en-IN')}
+            </span>
           </div>
         </div>
       </div>

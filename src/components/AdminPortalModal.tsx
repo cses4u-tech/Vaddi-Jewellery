@@ -1158,7 +1158,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                           className="w-full px-3 py-2 bg-white border border-amber-300 rounded-lg text-sm font-extrabold text-amber-950 focus:ring-2 focus:ring-amber-500"
                         />
                         <span className="text-[11px] text-amber-700 mt-1 block">
-                          10 Grams (Tola): <strong>₹{(Number(rate24K) * 10).toLocaleString('en-IN')}</strong>
+                          10 Grams (10g): <strong>₹{(Number(rate24K) * 10).toLocaleString('en-IN')}</strong>
                         </span>
                       </div>
 
@@ -1176,7 +1176,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                           className="w-full px-3 py-2 bg-white border border-amber-300 rounded-lg text-sm font-extrabold text-amber-950 focus:ring-2 focus:ring-amber-500"
                         />
                         <span className="text-[11px] text-amber-700 mt-1 block">
-                          8 Grams (Pavan): <strong>₹{(Number(rate22K) * 8).toLocaleString('en-IN')}</strong>
+                          10 Grams (10g): <strong>₹{(Number(rate22K) * 10).toLocaleString('en-IN')}</strong>
                         </span>
                       </div>
 
@@ -1194,7 +1194,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                           className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-sm font-bold text-stone-900 focus:ring-2 focus:ring-stone-500"
                         />
                         <span className="text-[11px] text-stone-500 mt-1 block">
-                          10 Grams: <strong>₹{(Number(rate18K) * 10).toLocaleString('en-IN')}</strong>
+                          10 Grams (10g): <strong>₹{(Number(rate18K) * 10).toLocaleString('en-IN')}</strong>
                         </span>
                       </div>
 
@@ -1212,7 +1212,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                           className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-900 focus:ring-2 focus:ring-slate-500"
                         />
                         <span className="text-[11px] text-slate-600 mt-1 block">
-                          1 Kg Silver Bar: <strong>₹{(Number(rateSilver) * 1000).toLocaleString('en-IN')}</strong>
+                          10 Grams (10g): <strong>₹{(Number(rateSilver) * 10).toLocaleString('en-IN')}</strong> • 1 Kg Bar: <strong>₹{(Number(rateSilver) * 1000).toLocaleString('en-IN')}</strong>
                         </span>
                       </div>
                     </div>
