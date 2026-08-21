@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Product, ShowroomSettings } from '../types';
 import { useLanguage } from '../context/LanguageContext';
-import { Award, MessageCircle, Eye, Sparkles, ZoomIn, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { calculateProductPriceBreakdown } from '../utils/pricing';
+import { Award, MessageCircle, Eye, Sparkles, ZoomIn, CheckCircle2, ShieldCheck, Zap } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
@@ -25,10 +26,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const isGold = product.metal.toLowerCase() === 'gold';
   const whatsappNumber = (settings?.whatsapp || '919650052262').replace(/[^0-9]/g, '');
 
+  // Calculate dynamic auto-price based on today's rates, weight, wastage %, and labour cost
+  const breakdown = calculateProductPriceBreakdown(product, settings);
+
   const whatsappMessage =
     language === 'te'
-      ? `నమస్కారం వధి జ్యువెలరీ, నేను ఈ నగ వివరాలు మరియు ధర తెలుసుకోవాలనుకుంటున్నాను:\n\n💎 నగ: ${title}\n🏷️ కోడ్: ${product.code}\n⚖️ తూకం: ${product.weight}g\n✨ స్వచ్ఛత: ${product.purity}\n\nదయచేసి ప్రస్తుత లైవ్ రేటు ప్రకారం కొటేషన్ పంపండి.`
-      : `Hello VADDI Jewellery, I am interested in inquiring about this jewellery piece:\n\n💎 Item: ${title}\n🏷️ Code: ${product.code}\n⚖️ Weight: ${product.weight}g\n✨ Purity: ${product.purity}\n\nPlease share the latest pricing and availability.`;
+      ? `నమస్కారం వధి జ్యువెలరీ, నేను ఈ నగ వివరాలు మరియు ధర తెలుసుకోవాలనుకుంటున్నాను:\n\n💎 నగ: ${title}\n🏷️ కోడ్: ${product.code}\n⚖️ తూకం: ${product.weight}g\n✨ స్వచ్ఛత: ${product.purity}\n💰 ప్రస్తుత ధర: ₹${breakdown.totalPrice.toLocaleString('en-IN')} (తరుగు: ${breakdown.wastagePercent}%, మజూరీ: ₹${breakdown.labourCost})\n\nదయచేసి లైవ్ కొటేషన్ మరియు లభ్యత తెలియజేయండి.`
+      : `Hello VADDI Jewellery, I am interested in inquiring about this jewellery piece:\n\n💎 Item: ${title}\n🏷️ Code: ${product.code}\n⚖️ Weight: ${product.weight}g\n✨ Purity: ${product.purity}\n💰 Today's Auto Price: ₹${breakdown.totalPrice.toLocaleString('en-IN')} (VA: ${breakdown.wastagePercent}%, Labour: ₹${breakdown.labourCost})\n\nPlease confirm latest pricing and showroom availability.`;
 
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
@@ -42,6 +46,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     availBg = 'bg-stone-100 text-stone-700 border-stone-300';
     availText = t('availability_out');
   }
+
+  const showPrice = product.show_price !== 0;
 
   return (
     <div
@@ -137,27 +143,48 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </span>
           </div>
 
-          {/* Price display if set, otherwise "Price on Request" */}
-          <div className="pt-2 flex items-baseline justify-between border-t border-stone-100">
-            {product.show_price && product.price ? (
+          {/* Auto-Calculated Price Display with Wastage & Labour Breakdown */}
+          <div className="pt-2.5 mt-2 border-t border-stone-100 space-y-1">
+            {showPrice ? (
               <div>
-                <span className="text-[10px] text-stone-500 block">{t('approx_price')}</span>
-                <span className="text-base font-extrabold text-[#1A1A1A]">
-                  ₹{Number(product.price).toLocaleString('en-IN')}
-                </span>
+                <div className="flex items-baseline justify-between">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-base sm:text-lg font-extrabold text-stone-950">
+                      ₹{breakdown.totalPrice.toLocaleString('en-IN')}
+                    </span>
+                    <span className="text-[10px] text-stone-400 font-normal">
+                      (Live Rate)
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-0.5 text-[10px] text-amber-800 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                    <Zap className="w-2.5 h-2.5 text-amber-600" />
+                    <span>Auto-calc</span>
+                  </div>
+                </div>
+
+                {/* Wastage & Labour breakdown pills */}
+                <div className="flex items-center gap-1.5 text-[10px] text-stone-500 font-medium pt-0.5">
+                  <span className="bg-stone-100 px-1.5 py-0.5 rounded text-stone-700">
+                    VA: <strong>{breakdown.wastagePercent}%</strong>
+                  </span>
+                  <span>•</span>
+                  <span className="bg-stone-100 px-1.5 py-0.5 rounded text-stone-700">
+                    Labour: <strong>₹{breakdown.labourCost.toLocaleString('en-IN')}</strong>
+                  </span>
+                </div>
               </div>
             ) : (
-              <div>
+              <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-[#8C6D23] bg-[#C5A869]/10 px-2 py-0.5 rounded inline-block">
                   {t('price_on_request')}
                 </span>
+                <div className="flex items-center gap-1 text-[11px] text-emerald-700 font-semibold">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>BIS 916</span>
+                </div>
               </div>
             )}
-
-            <div className="flex items-center gap-1 text-[11px] text-emerald-700 font-semibold">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-              <span>BIS 916</span>
-            </div>
           </div>
         </div>
 

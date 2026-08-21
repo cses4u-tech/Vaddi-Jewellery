@@ -125,14 +125,52 @@ export function App() {
 
   useEffect(() => {
     loadShowroomData();
-    // Auto-refresh settings every 30s to keep live rates updated
+    // Auto-refresh settings every 30s as fallback
     const interval = setInterval(() => {
       fetchSettings().then((s) => {
         if (s) setSettings(s);
       }).catch(() => {});
     }, 30000);
-    return () => clearInterval(interval);
-  }, [loadShowroomData]);
+
+    // REAL-TIME SERVER-SENT EVENTS (SSE) LISTENER
+    // Automatically pushes updates to all connected browser clients whenever admin changes rates, wastage, labour, or products
+    let eventSource: EventSource | null = null;
+    try {
+      eventSource = new EventSource('/api/events');
+      
+      eventSource.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload.type === 'connected') {
+            // Connected to real-time sync stream
+          } else if (payload.type === 'rates_updated' || payload.type === 'settings_updated') {
+            loadShowroomData();
+            loadCatalogProducts();
+          } else if (payload.type === 'products_updated' || payload.type === 'categories_updated') {
+            loadShowroomData();
+            loadCatalogProducts();
+          } else if (payload.type === 'reviews_updated' || payload.type === 'enquiries_updated') {
+            loadShowroomData();
+          }
+        } catch (e) {
+          console.warn('Could not parse SSE payload:', e);
+        }
+      };
+
+      eventSource.onerror = () => {
+        // EventSource will automatically retry connection
+      };
+    } catch (e) {
+      console.warn('Real-time SSE not supported or connection error:', e);
+    }
+
+    return () => {
+      clearInterval(interval);
+      if (eventSource) {
+        eventSource.close();
+      }
+    };
+  }, [loadShowroomData, loadCatalogProducts]);
 
   useEffect(() => {
     loadCatalogProducts();
@@ -198,6 +236,7 @@ export function App() {
       <LiveRatesTicker
         settings={settings}
         onRefreshRates={loadShowroomData}
+        onOpenAdminRates={() => setIsAdminPortalOpen(true)}
       />
 
       {/* 3. Hero Banner (Heritage Proddatur Showroom) */}

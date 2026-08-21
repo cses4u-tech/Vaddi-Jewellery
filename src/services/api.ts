@@ -744,6 +744,61 @@ export async function deleteAdminReview(id: number, token: string) {
 
 export async function updateAdminSettings(settings: Record<string, string>, token: string) {
   saveLocalSettings(settings as any);
+  
+  // Recalculate prices for local products if rates changed
+  if (
+    'gold_rate_24k' in settings ||
+    'gold_rate_22k' in settings ||
+    'gold_rate_18k' in settings ||
+    'silver_rate' in settings
+  ) {
+    try {
+      const prods = getLocalProducts();
+      const rate24k = Number(settings.gold_rate_24k) || 7650;
+      const rate22k = Number(settings.gold_rate_22k) || 7020;
+      const rate18k = Number(settings.gold_rate_18k) || 5750;
+      const rateSilver = Number(settings.silver_rate) || 98;
+
+      const updated = prods.map((p) => {
+        const isGold = (p.metal || '').toLowerCase() === 'gold';
+        const purity = (p.purity || '').toUpperCase();
+        let gramRate = rate22k;
+        if (isGold) {
+          if (purity.includes('24K') || purity.includes('999')) gramRate = rate24k;
+          else if (purity.includes('18K')) gramRate = rate18k;
+          else gramRate = rate22k;
+        } else {
+          gramRate = rateSilver;
+        }
+        const weight = Math.max(0, Number(p.weight) || 0);
+        const metalBase = Math.round(weight * gramRate);
+        let wastageAmount = 0;
+        if (p.wastage_cost && Number(p.wastage_cost) > 0) {
+          wastageAmount = Math.round(Number(p.wastage_cost));
+        } else if (p.wastage_percent && Number(p.wastage_percent) > 0) {
+          wastageAmount = Math.round((metalBase * Number(p.wastage_percent)) / 100);
+        } else {
+          wastageAmount = Math.round((metalBase * (isGold ? 10 : 8)) / 100);
+        }
+        let labourCost = 0;
+        if (p.labour_cost !== undefined && p.labour_cost !== null && Number(p.labour_cost) > 0) {
+          labourCost = Math.round(Number(p.labour_cost));
+        } else if (p.making_charge_per_gram && Number(p.making_charge_per_gram) > 0) {
+          labourCost = Math.round(weight * Number(p.making_charge_per_gram));
+        } else {
+          labourCost = isGold ? 2500 : 650;
+        }
+        return {
+          ...p,
+          price: metalBase + wastageAmount + labourCost,
+        };
+      });
+      saveLocalProducts(updated);
+    } catch (e) {
+      console.warn('Could not auto-recalc local product prices:', e);
+    }
+  }
+
   try {
     const { ok, data } = await safeJsonFetch<{ success: boolean; message: string; error?: string }>(
       `${API_BASE}/admin/settings`,
@@ -758,6 +813,19 @@ export async function updateAdminSettings(settings: Record<string, string>, toke
     console.warn('Update settings API error, saved to local storage:', err);
   }
   return { success: true, message: 'Settings saved successfully' };
+}
+
+export async function updateAdminRates(
+  rates: { gold_rate_24k?: string | number; gold_rate_22k?: string | number; gold_rate_18k?: string | number; silver_rate?: string | number },
+  token: string
+) {
+  const payload: Record<string, string> = {};
+  if (rates.gold_rate_24k !== undefined) payload.gold_rate_24k = String(rates.gold_rate_24k);
+  if (rates.gold_rate_22k !== undefined) payload.gold_rate_22k = String(rates.gold_rate_22k);
+  if (rates.gold_rate_18k !== undefined) payload.gold_rate_18k = String(rates.gold_rate_18k);
+  if (rates.silver_rate !== undefined) payload.silver_rate = String(rates.silver_rate);
+
+  return updateAdminSettings(payload, token);
 }
 
 export async function uploadLocalImage(

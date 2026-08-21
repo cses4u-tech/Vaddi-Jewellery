@@ -3,11 +3,94 @@ import path from 'node:path';
 import fs from 'node:fs';
 
 const DB_PATH = path.resolve(process.cwd(), 'vaddi_jewellery.db');
+let cachedDb: DatabaseSync | null = null;
 
-export function getDatabase(): DatabaseSync {
+/**
+ * Remove any existing SQLite files on disk if corrupt or malformed.
+ */
+function cleanCorruptedDbFiles() {
+  try {
+    if (cachedDb) {
+      try { cachedDb.close(); } catch {}
+      cachedDb = null;
+    }
+    const walPath = `${DB_PATH}-wal`;
+    const shmPath = `${DB_PATH}-shm`;
+    if (fs.existsSync(DB_PATH)) fs.unlinkSync(DB_PATH);
+    if (fs.existsSync(walPath)) fs.unlinkSync(walPath);
+    if (fs.existsSync(shmPath)) fs.unlinkSync(shmPath);
+  } catch (err) {
+    console.error('Error removing corrupted DB files:', err);
+  }
+}
+
+/**
+ * Creates and initializes a fresh SQLite database instance.
+ */
+function createAndInitDb(): DatabaseSync {
   const db = new DatabaseSync(DB_PATH);
+  
+  // High-reliability SQLite pragmas
+  try {
+    db.exec('PRAGMA journal_mode = WAL;');
+    db.exec('PRAGMA synchronous = NORMAL;');
+    db.exec('PRAGMA temp_store = MEMORY;');
+    db.exec('PRAGMA busy_timeout = 5000;');
+  } catch (e) {
+    console.warn('Pragma warning:', e);
+  }
+
+  // Verify DB integrity
+  try {
+    const checkResult = db.prepare('PRAGMA quick_check;').get() as any;
+    const checkVal = checkResult ? Object.values(checkResult)[0] : '';
+    if (checkVal && checkVal !== 'ok') {
+      throw new Error(`Database integrity check failed: ${checkVal}`);
+    }
+  } catch (checkErr) {
+    console.error('Integrity check error, resetting database:', checkErr);
+    throw checkErr;
+  }
+
   initSchema(db);
   return db;
+}
+
+/**
+ * Main database accessor with singleton caching and auto-healing on corrupt/malformed disk image.
+ */
+export function getDatabase(): DatabaseSync {
+  if (cachedDb) {
+    try {
+      // Quick ping to check connection health
+      cachedDb.prepare('SELECT 1').get();
+      return cachedDb;
+    } catch (e: any) {
+      const msg = String(e?.message || '');
+      if (msg.includes('malformed') || msg.includes('corrupt') || msg.includes('readonly')) {
+        console.error('Cached DB connection corrupted, re-initializing...', e);
+        return resetAndRecoverDatabase();
+      }
+      return cachedDb;
+    }
+  }
+
+  try {
+    cachedDb = createAndInitDb();
+    return cachedDb;
+  } catch (err: any) {
+    console.error('Failed to open database. Attempting self-healing recovery...', err);
+    return resetAndRecoverDatabase();
+  }
+}
+
+/**
+ * Hard-reset and recover the database from scratch.
+ */
+export function resetAndRecoverDatabase(): DatabaseSync {
+  cleanCorruptedDbFiles();
+  cachedDb = createAndInitDb();
+  return cachedDb;
 }
 
 function initSchema(db: DatabaseSync) {
@@ -41,10 +124,10 @@ function initSchema(db: DatabaseSync) {
       weight REAL NOT NULL,
       size TEXT,
       price REAL,
-      show_price INTEGER DEFAULT 0,
-      wastage_percent REAL DEFAULT 0,
+      show_price INTEGER DEFAULT 1,
+      wastage_percent REAL DEFAULT 10.0,
       wastage_cost REAL DEFAULT 0,
-      labour_cost REAL DEFAULT 0,
+      labour_cost REAL DEFAULT 2500,
       making_charge_per_gram REAL DEFAULT 0,
       availability TEXT DEFAULT 'In Stock',
       featured INTEGER DEFAULT 0,
@@ -57,10 +140,11 @@ function initSchema(db: DatabaseSync) {
   `);
 
   // Safe schema migrations for existing DB
-  try { db.exec('ALTER TABLE products ADD COLUMN wastage_percent REAL DEFAULT 0;'); } catch {}
+  try { db.exec('ALTER TABLE products ADD COLUMN wastage_percent REAL DEFAULT 10.0;'); } catch {}
   try { db.exec('ALTER TABLE products ADD COLUMN wastage_cost REAL DEFAULT 0;'); } catch {}
-  try { db.exec('ALTER TABLE products ADD COLUMN labour_cost REAL DEFAULT 0;'); } catch {}
+  try { db.exec('ALTER TABLE products ADD COLUMN labour_cost REAL DEFAULT 2500;'); } catch {}
   try { db.exec('ALTER TABLE products ADD COLUMN making_charge_per_gram REAL DEFAULT 0;'); } catch {}
+  try { db.exec('ALTER TABLE products ADD COLUMN show_price INTEGER DEFAULT 1;'); } catch {}
 
   // 3. Enquiries
   db.exec(`
@@ -115,6 +199,79 @@ function initSchema(db: DatabaseSync) {
   const catCount = (db.prepare('SELECT COUNT(*) as count FROM categories').get() as { count: number }).count;
   if (catCount === 0) {
     seedInitialData(db);
+  } else {
+    // Ensure existing products have show_price = 1 and default wastage/labour if missing
+    try {
+      db.exec(`
+        UPDATE products 
+        SET 
+          show_price = 1,
+          wastage_percent = CASE WHEN (wastage_percent IS NULL OR wastage_percent = 0) AND metal = 'Gold' THEN 10.0 WHEN (wastage_percent IS NULL OR wastage_percent = 0) AND metal = 'Silver' THEN 8.0 ELSE wastage_percent END,
+          labour_cost = CASE WHEN (labour_cost IS NULL OR labour_cost = 0) AND metal = 'Gold' THEN 2500 WHEN (labour_cost IS NULL OR labour_cost = 0) AND metal = 'Silver' THEN 650 ELSE labour_cost END
+        WHERE wastage_percent IS NULL OR wastage_percent = 0 OR labour_cost IS NULL OR labour_cost = 0 OR show_price = 0;
+      `);
+      syncAllProductPricesWithSettings(db);
+    } catch (e) {
+      console.warn('Migration sync warning:', e);
+    }
+  }
+}
+
+export function syncAllProductPricesWithSettings(db: DatabaseSync) {
+  try {
+    const settingsRows = db.prepare('SELECT * FROM settings').all() as Array<{ key: string; value: string }>;
+    const settingsMap: Record<string, number> = {};
+    for (const s of settingsRows) {
+      settingsMap[s.key] = Number(s.value) || 0;
+    }
+
+    const rate24k = settingsMap['gold_rate_24k'] || 7650;
+    const rate22k = settingsMap['gold_rate_22k'] || 7020;
+    const rate18k = settingsMap['gold_rate_18k'] || 5750;
+    const rateSilver = settingsMap['silver_rate'] || 98;
+
+    const prods = db.prepare('SELECT * FROM products').all() as any[];
+    const updateStmt = db.prepare('UPDATE products SET price = ?, show_price = 1 WHERE id = ?');
+
+    for (const p of prods) {
+      const isGold = (p.metal || '').toLowerCase() === 'gold';
+      const purity = (p.purity || '').toUpperCase();
+
+      let gramRate = rate22k;
+      if (isGold) {
+        if (purity.includes('24K') || purity.includes('999')) gramRate = rate24k;
+        else if (purity.includes('18K')) gramRate = rate18k;
+        else gramRate = rate22k;
+      } else {
+        gramRate = rateSilver;
+      }
+
+      const weight = Math.max(0, Number(p.weight) || 0);
+      const metalBase = Math.round(weight * gramRate);
+
+      let wastageAmount = 0;
+      if (p.wastage_cost && Number(p.wastage_cost) > 0) {
+        wastageAmount = Math.round(Number(p.wastage_cost));
+      } else if (p.wastage_percent && Number(p.wastage_percent) > 0) {
+        wastageAmount = Math.round((metalBase * Number(p.wastage_percent)) / 100);
+      } else {
+        wastageAmount = Math.round((metalBase * (isGold ? 10 : 8)) / 100);
+      }
+
+      let labourCost = 0;
+      if (p.labour_cost !== undefined && p.labour_cost !== null && Number(p.labour_cost) > 0) {
+        labourCost = Math.round(Number(p.labour_cost));
+      } else if (p.making_charge_per_gram && Number(p.making_charge_per_gram) > 0) {
+        labourCost = Math.round(weight * Number(p.making_charge_per_gram));
+      } else {
+        labourCost = isGold ? 2500 : 650;
+      }
+
+      const calculatedPrice = metalBase + wastageAmount + labourCost;
+      updateStmt.run(calculatedPrice, p.id);
+    }
+  } catch (err) {
+    console.error('Error syncing all product prices in DB:', err);
   }
 }
 
@@ -122,11 +279,11 @@ function seedInitialData(db: DatabaseSync) {
   // Default Settings
   const defaultSettings: Record<string, string> = {
     shop_name: 'VADDI Jewellery',
-    shop_name_te: 'వధి జ్యువెలరీ',
+    shop_name_te: 'వద్ధి జ్యువెలరీ',
     tagline: 'Prestigious Heritage Jewellery Showroom',
     tagline_te: 'తరతరాల నమ్మకమైన బంగారు & వెండి షోరూమ్',
     address: 'VNR & brothers, Vaddi Complex, Sundaracharyula St, Sarvakatta',
-    address_te: 'వి.ఎన్.ఆర్ & బ్రదర్స్, వధి కాంప్లెక్స్, సుందరాచార్యుల వీధి, సర్వకట్ట',
+    address_te: 'వి.ఎన్.ఆర్ & బ్రదర్స్, వద్ధి కాంప్లెక్స్, సుందరాచార్యుల వీధి, సర్వకట్ట',
     city_state_pincode: 'Proddatur, Andhra Pradesh 516360, India',
     city_state_pincode_te: 'ప్రొద్దుటూరు, ఆంధ్రప్రదేశ్ 516360, భారతదేశం',
     phone: '+91 9650052262',
@@ -149,7 +306,7 @@ function seedInitialData(db: DatabaseSync) {
     insertSetting.run(k, v);
   }
 
-  // Admin user: admin / VaddiFamily@PDTR (hash representation)
+  // Admin user
   db.prepare('INSERT OR REPLACE INTO admins (username, password_hash) VALUES (?, ?)').run('admin', 'VaddiFamily@PDTR');
 
   // Categories
@@ -182,7 +339,7 @@ function seedInitialData(db: DatabaseSync) {
     insertCat.run(c.name, c.name_te, c.metal, c.slug, c.sort_order);
   }
 
-  // Seed Products
+  // Seed Products with Wastage & Labour Cost
   const products = [
     {
       code: 'VD-G001',
@@ -197,8 +354,11 @@ function seedInitialData(db: DatabaseSync) {
       description_te: 'సహజమైన రూబీ, ఎమరాల్డ్ రాళ్ళు మరియు స్వచ్ఛమైన ముత్యాల అమరికతో కూడిన అద్భుతమైన 22 క్యారెట్ల బిఐఎస్ హాల్‌మార్క్ లక్ష్మీ కాసుల హారం.',
       weight: 62.4,
       size: '22 inches with adjustable gold dori',
-      price: 438000,
-      show_price: 0,
+      wastage_percent: 12.0,
+      wastage_cost: 0,
+      labour_cost: 6500,
+      making_charge_per_gram: 0,
+      show_price: 1,
       availability: 'In Stock',
       featured: 1,
       new_arrival: 1,
@@ -218,8 +378,11 @@ function seedInitialData(db: DatabaseSync) {
       description_te: 'నెమలి చెక్కడాలు, సున్నితమైన కెంపులు మరియు ముత్యాల తోరణాలతో రూపొందించిన రాయల్ యాంటిక్ ఫినిష్ చోకర్.',
       weight: 48.2,
       size: 'Standard Choker Collar',
-      price: 338000,
-      show_price: 0,
+      wastage_percent: 11.5,
+      wastage_cost: 0,
+      labour_cost: 5200,
+      making_charge_per_gram: 0,
+      show_price: 1,
       availability: 'In Stock',
       featured: 1,
       new_arrival: 0,
@@ -239,8 +402,11 @@ function seedInitialData(db: DatabaseSync) {
       description_te: 'విశిష్టమైన నక్షి పనితనంతో కూడిన బరువైన 22 క్యారెట్ బంగారు గాజుల జత. సైజులు: 2.4, 2.6, 2.8 అందుబాటులో ఉన్నాయి.',
       weight: 36.5,
       size: 'Size 2.6 (Custom sizes available)',
-      price: 256000,
-      show_price: 0,
+      wastage_percent: 10.0,
+      wastage_cost: 0,
+      labour_cost: 3800,
+      making_charge_per_gram: 0,
+      show_price: 1,
       availability: 'In Stock',
       featured: 1,
       new_arrival: 1,
@@ -258,73 +424,85 @@ function seedInitialData(db: DatabaseSync) {
       purity: '22K BIS 916',
       description: 'Classic bell-shaped 22K gold jhumkas adorned with natural ruby studs, delicate filigree bell domes, and hanging South Sea seed pearls.',
       description_te: 'పవిత్రమైన పండుగలకు మరియు వివాహాలకు అత్యంత శోభనిచ్చే 22 క్యారెట్ హాల్‌మార్క్ బంగారు బుట్టలు.',
-      weight: 22.8,
-      size: 'Length: 48mm',
-      price: 160000,
-      show_price: 0,
+      weight: 18.2,
+      size: 'Height: 1.8 inches',
+      wastage_percent: 9.5,
+      wastage_cost: 0,
+      labour_cost: 2200,
+      making_charge_per_gram: 0,
+      show_price: 1,
       availability: 'In Stock',
-      featured: 1,
-      new_arrival: 0,
+      featured: 0,
+      new_arrival: 1,
       image_path: '/images/jewellery/vd_g004_gold_jhumkas.svg',
       image_paths: JSON.stringify(['/images/jewellery/vd_g004_gold_jhumkas.svg'])
     },
     {
       code: 'VD-G005',
-      title: 'Sacred 22K Telugu Double-Bottu Mangalsutra Chain',
-      title_te: 'పవిత్రమైన 22K తెలుగు డబుల్-బొట్టు మంగళసూత్రం చైన్',
+      title: 'Traditional Mangalsutra Double Line Chain',
+      title_te: 'సాంప్రదాయ తాళి బొట్టు రెండు పేటల మంగళసూత్ర చైన్',
       metal: 'Gold',
       category: 'Mangalsutra & Thali Chains',
       category_te: 'మంగళసూత్రాలు & తాళి చైన్లు',
       product_type: 'Jewellery',
       purity: '22K BIS 916',
-      description: 'Traditional Telugu double-bottu sacred mangalsutra handcrafted with black spinels, 22K gold beads, and auspicious thali vatis.',
-      description_te: 'సాంప్రదాయ తెలుగు డబుల్ బొట్టు, నల్లపూసలు మరియు 22 క్యారెట్ స్వచ్ఛమైన బంగారు పూసల మంగళసూత్రం.',
-      weight: 28.5,
-      size: 'Length: 28 inches',
-      price: 200000,
-      show_price: 0,
+      description: 'Sacred Telugu traditional double-line black bead and 22K gold hand-woven Mangalsutra chain with solid gold thali cups and Lakshmi bottu.',
+      description_te: 'రెండు పేటల నల్లపూసలు, 22K స్వచ్ఛమైన బంగారు గుండ్లు మరియు లక్ష్మీ బొట్టుతో కూడిన సంప్రదాయ మంగళసూత్రం.',
+      weight: 24.6,
+      size: 'Length: 26 inches',
+      wastage_percent: 8.5,
+      wastage_cost: 0,
+      labour_cost: 2800,
+      making_charge_per_gram: 0,
+      show_price: 1,
       availability: 'In Stock',
       featured: 1,
-      new_arrival: 1,
+      new_arrival: 0,
       image_path: '/images/jewellery/vd_g005_mangalsutra_chain.svg',
       image_paths: JSON.stringify(['/images/jewellery/vd_g005_mangalsutra_chain.svg'])
     },
     {
       code: 'VD-G006',
-      title: '24K (999.9) Pure Gold Lakshmi Coin - 10 Grams',
-      title_te: '24K (999.9) స్వచ్ఛమైన లక్ష్మీ బంగారు నాణెం - 10 గ్రాములు',
+      title: '24K Pure Gold Coin - Goddess Lakshmi (999.9 Purity)',
+      title_te: '24K స్వచ్ఛమైన బంగారు లక్ష్మీదేవి నాణెం (999.9)',
       metal: 'Gold',
       category: '24K Gold Coins',
       category_te: '24K స్వచ్ఛమైన బంగారు నాణేలు',
-      product_type: 'Coin',
-      purity: '24K 999.9',
-      description: 'Government certified 999.9 highest purity 24 Karat gold coin featuring Goddess Lakshmi and embossed VADDI Jewellery authenticity mark. Sealed tamper-proof packaging.',
-      description_te: '999.9 అత్యున్నత స్వచ్ఛత గల 24 క్యారెట్ల లక్ష్మీ దేవి బంగారు నాణెం. శుభకార్యాలకు, బహుమతులకు మరియు భవిష్యత్ పొదుపుకు ఉత్తమమైనది.',
+      product_type: 'Gold Coin',
+      purity: '24K Pure Gold (999)',
+      description: 'Tamper-proof certified blister card packaged 24 Karat 999.9 fine gold bullion coin featuring embossed Goddess Lakshmi, with assay certificate.',
+      description_te: 'అస్సే ల్యాబ్ ధృవీకరణ పత్రంతో కూడిన 999.9 స్వచ్ఛమైన 24 క్యారెట్ లక్ష్మీదేవి బంగారు నాణెం.',
       weight: 10.0,
-      size: 'Diameter: 22mm',
-      price: 76500,
+      size: 'Diameter: 22mm (In Assay Pack)',
+      wastage_percent: 3.0,
+      wastage_cost: 0,
+      labour_cost: 650,
+      making_charge_per_gram: 0,
       show_price: 1,
       availability: 'In Stock',
-      featured: 1,
+      featured: 0,
       new_arrival: 0,
       image_path: '/images/jewellery/vd_g006_24k_gold_coin_laxmi.svg',
       image_paths: JSON.stringify(['/images/jewellery/vd_g006_24k_gold_coin_laxmi.svg'])
     },
     {
       code: 'VD-G007',
-      title: 'Royal 22K Gold Peacock Cocktail Ring',
-      title_te: 'రాయల్ 22K బంగారు నెమలి డిజైన్ ఉంగరం',
+      title: 'Handmade Peacock Motif 22K Gold Ring',
+      title_te: 'చేతితో తీర్చిదిద్దిన నెమలి డిజైన్ 22K బంగారు ఉంగరం',
       metal: 'Gold',
       category: 'Gold Rings & Vankis',
       category_te: 'బంగారు ఉంగరాలు & వంకీలు',
       product_type: 'Jewellery',
       purity: '22K BIS 916',
-      description: 'Magnificent peacock statement cocktail ring sculpted in 22K gold with ruby crown accents and emerald feathers.',
-      description_te: 'కెంపులు మరియు పచ్చల అందాలతో కళాత్మకంగా రూపొందించిన 22 క్యారెట్ రాయల్ నెమలి డిజైన్ ఉంగరం.',
-      weight: 11.2,
-      size: 'Adjustable size (Fits 12-18)',
-      price: 78600,
-      show_price: 0,
+      description: 'Exquisitely carved statement peacock cocktail ring in 22K gold with ruby eye accents and micro-beaded filigree feathers.',
+      description_te: 'అందమైన నెమలి ఆకృతి, కెంపు అమరికతో తయారైన 22 క్యారెట్ల హాల్‌మార్క్ బంగారు ఉంగరం.',
+      weight: 8.4,
+      size: 'Ring Size: Indian 14 (Adjustable)',
+      wastage_percent: 9.0,
+      wastage_cost: 0,
+      labour_cost: 1400,
+      making_charge_per_gram: 0,
+      show_price: 1,
       availability: 'In Stock',
       featured: 0,
       new_arrival: 1,
@@ -333,19 +511,22 @@ function seedInitialData(db: DatabaseSync) {
     },
     {
       code: 'VD-G008',
-      title: 'Handcrafted 22K Gold Gopuram Mopu Chain',
-      title_te: 'చేతితో తీర్చిదిద్దిన 22K గోపురం మోపు బంగారు గొలుసు',
+      title: 'Gopuram Style South Indian 22K Gold Chain',
+      title_te: 'గోపురం నగిషీ 22K పురుషుల బంగారు గొలుసు',
       metal: 'Gold',
       category: 'Gold Chains',
       category_te: 'బంగారు గొలుసులు',
       product_type: 'Jewellery',
       purity: '22K BIS 916',
-      description: 'Triple strand handcrafted heavy gold chain with traditional temple gopuram side-mopu links and sturdy clasp.',
-      description_te: 'దృఢమైన అల్లిక మరియు గోపురం నమూనా సైడ్ మోపుతో కూడిన 22 క్యారెట్ హాల్‌మార్క్ బంగారు గొలుసు.',
+      description: 'Durable and heavy machine-cut Gopuram link 22K gold chain for men with sturdy S-hook clasp and superior polish.',
+      description_te: 'దృఢమైన గోపురం నమూనా గొలుసు, రోజువారీ మరియు పండుగలకు అనువైన ఘనమైన 22 క్యారెట్ డిజైన్.',
       weight: 32.0,
-      size: 'Length: 24 inches',
-      price: 224000,
-      show_price: 0,
+      size: 'Length: 24 inches, Width: 4.5mm',
+      wastage_percent: 8.0,
+      wastage_cost: 0,
+      labour_cost: 2600,
+      making_charge_per_gram: 0,
+      show_price: 1,
       availability: 'In Stock',
       featured: 0,
       new_arrival: 0,
@@ -356,18 +537,21 @@ function seedInitialData(db: DatabaseSync) {
     // Silver Products
     {
       code: 'VD-S001',
-      title: '92.5 Sterling Silver Lord Ganesha Idol on Peedam',
-      title_te: '92.5 స్వచ్ఛమైన వెండి పీఠంపై విఘ్నేశ్వర విగ్రహం',
+      title: '92.5 Sterling Silver Divine Ganesha Idol',
+      title_te: '92.5 స్వచ్ఛమైన వెండి సిద్ధి వినాయక విగ్రహం',
       metal: 'Silver',
       category: 'Silver God Idols',
       category_te: 'వెండి దేవుడి విగ్రహాలు',
       product_type: 'Idol',
       purity: '92.5 Sterling Silver',
-      description: 'Intricately handcrafted 92.5 certified sterling silver Ganesha idol seated on a carved prabhavali arch peedam with modak and mushika vehicle.',
-      description_te: 'గృహ ప్రవేశాలు, నిత్య పూజ మరియు వ్యాపార ప్రారంభోత్సవాలకు అత్యంత శుభప్రదమైన 92.5 వెండి వినాయక విగ్రహం.',
-      weight: 350.0,
-      size: 'Height: 6 inches, Width: 4.5 inches',
-      price: 34300,
+      description: 'Solid handcrafted 92.5 sterling silver Lord Ganesha idol seated on lotus pedestal with antique finish and micro-engravings.',
+      description_te: 'తామర పీఠంపై కొలువుదీరిన శ్రీ సిద్ధి వినాయక స్వామి 92.5 వెండి విగ్రహం. నిత్య పూజకు మరియు గృహప్రవేశాలకు అత్యంత శ్రేష్టం.',
+      weight: 250.0,
+      size: 'Height: 4.2 inches, Base: 3.5 inches',
+      wastage_percent: 8.0,
+      wastage_cost: 0,
+      labour_cost: 1500,
+      making_charge_per_gram: 0,
       show_price: 1,
       availability: 'In Stock',
       featured: 1,
@@ -377,18 +561,21 @@ function seedInitialData(db: DatabaseSync) {
     },
     {
       code: 'VD-S002',
-      title: '92.5 Sterling Silver Mahalakshmi Idol with Prabhavali',
-      title_te: '92.5 వెండి ప్రభావళితో కూడిన మహాలక్ష్మీ దేవి విగ్రహం',
+      title: '92.5 Sterling Silver Goddess Lakshmi Idol',
+      title_te: '92.5 స్వచ్ఛమైన వెండి గజలక్ష్మీ విగ్రహం',
       metal: 'Silver',
       category: 'Silver God Idols',
       category_te: 'వెండి దేవుడి విగ్రహాలు',
       product_type: 'Idol',
       purity: '92.5 Sterling Silver',
-      description: 'Divine 92.5 pure silver Mahalakshmi idol seated on a blooming lotus pedestal with showering wealth posture and radiant prabhavali.',
-      description_te: 'సంపూర్ణ ఐశ్వర్యాన్ని, సుఖశాంతులను ప్రసాదించే కళాత్మక 92.5 స్వచ్ఛమైన వెండి మహాలక్ష్మి అమ్మవారి విగ్రహం.',
-      weight: 420.0,
-      size: 'Height: 7 inches',
-      price: 41160,
+      description: 'Auspicious Gajalakshmi silver vigraham in 92.5 sterling silver with elephant attendants and divine Abhaya Hastha blessings.',
+      description_te: 'ఐశ్వర్యాన్ని మరియు సుఖశాంతులను ప్రసాదించే 92.5 వెండి గజలక్ష్మీ దేవి మూర్తి.',
+      weight: 320.0,
+      size: 'Height: 5 inches, Base: 4 inches',
+      wastage_percent: 8.0,
+      wastage_cost: 0,
+      labour_cost: 1800,
+      making_charge_per_gram: 0,
       show_price: 1,
       availability: 'In Stock',
       featured: 1,
@@ -398,18 +585,21 @@ function seedInitialData(db: DatabaseSync) {
     },
     {
       code: 'VD-S003',
-      title: 'Sterling Silver Royal Pooja Thali Set (7 Pieces)',
-      title_te: 'రాయల్ 92.5 వెండి పూజా తాంబూలం సెట్ (7 వస్తువులు)',
+      title: 'Pure 92.5 Silver Royal Pooja Thali Set (8 Pieces)',
+      title_te: '92.5 స్వచ్ఛమైన వెండి రాజస పూజా తాంబూలం సెట్ (8 వస్తువులు)',
       metal: 'Silver',
       category: 'Silver Pooja Thali Sets',
       category_te: 'వెండి పూజా తాంబూలం సెట్లు',
-      product_type: 'Pooja Article',
+      product_type: 'Pooja Set',
       purity: '92.5 Sterling Silver',
-      description: 'Complete 7-piece 92.5 silver royal pooja set: 11-inch engraved pooja thali, 2 Kamakshi diyas, silver kalash, kumkum katori, chandan katori, and silver pooja bell.',
-      description_te: '11 అంగుళాల వెండి తాంబూలం, 2 దీపాలు, కలశం, కుంకుమ భరిణె, గంధం గిన్నె మరియు వెండి గంటతో కూడిన సంపూర్ణ పూజా సెట్.',
-      weight: 680.0,
-      size: 'Thali Diameter: 11 inches',
-      price: 66640,
+      description: 'Comprehensive 8-piece pure silver pooja set including embossed Plate (11 inch), Kamakshi Diya pair, Kalash, Bell, Chandan cup, and Agarbatti stand.',
+      description_te: '11 అంగుళాల వెండి ప్లేట్, కామాక్షి దీపాలు, కలశం, గంట, చందన పాత్రలతో కూడిన సంపూర్ణ పూజా సామగ్రి సెట్.',
+      weight: 550.0,
+      size: 'Plate Diameter: 11 inches',
+      wastage_percent: 8.0,
+      wastage_cost: 0,
+      labour_cost: 3200,
+      making_charge_per_gram: 0,
       show_price: 1,
       availability: 'In Stock',
       featured: 1,
@@ -419,18 +609,21 @@ function seedInitialData(db: DatabaseSync) {
     },
     {
       code: 'VD-S004',
-      title: '92.5 Sterling Silver Kalash with Silver Coconut & Leaves',
-      title_te: '92.5 వెండి కలశం (వెండి కొబ్బరికాయ & మామిడాకులతో)',
+      title: '92.5 Silver Sacred Kalash with Coconut & Mango Leaves',
+      title_te: '92.5 వెండి పూర్ణకుంభ కలశం (కొబ్బరికాయ & ఆకులతో)',
       metal: 'Silver',
       category: 'Silver Kalash & Pooja Articles',
       category_te: 'వెండి కలశాలు & పూజా వస్తువులు',
       product_type: 'Pooja Article',
       purity: '92.5 Sterling Silver',
-      description: 'Auspicious pure silver pooja kalash ensemble featuring floral pot, removable silver coconut (nariyal) and 5 sacred silver mango leaves.',
-      description_te: 'వరలక్ష్మీ వ్రతం, సత్యనారాయణ వ్రతం మరియు పవిత్ర పూజల కొరకు రూపొందించిన 92.5 స్వచ్ఛమైన వెండి కలశం.',
-      weight: 240.0,
-      size: 'Height: 7.5 inches',
-      price: 23520,
+      description: 'Traditional Purna Kumbha Kalash handcrafted in 92.5 silver with detachable silver Nariyal (coconut) and 5 sacred silver mango leaves.',
+      description_te: 'వరలక్ష్మీ వ్రతం, గృహప్రవేశాలకు అనువైన పరిపూర్ణమైన 92.5 వెండి పూర్ణకుంభ కలశం.',
+      weight: 280.0,
+      size: 'Height: 7 inches with Nariyal',
+      wastage_percent: 8.0,
+      wastage_cost: 0,
+      labour_cost: 1600,
+      making_charge_per_gram: 0,
       show_price: 1,
       availability: 'In Stock',
       featured: 0,
@@ -440,8 +633,8 @@ function seedInitialData(db: DatabaseSync) {
     },
     {
       code: 'VD-S005',
-      title: 'Handcrafted Sterling Silver Ghungroo Payal / Anklets (Pair)',
-      title_te: 'చేతితో అల్లిన స్వచ్ఛమైన వెండి పట్టీలు / గజ్జెలు (జత)',
+      title: 'Traditional Pure Silver Payal / Anklets with Bells (Pair)',
+      title_te: 'సాంప్రదాయ స్వచ్ఛమైన వెండి పట్టీలు / గజ్జెలు (జత)',
       metal: 'Silver',
       category: 'Silver Payal & Anklets',
       category_te: 'వెండి పట్టీలు & గజ్జెలు',
@@ -451,7 +644,10 @@ function seedInitialData(db: DatabaseSync) {
       description_te: 'మధురమైన గజ్జెల సవ్వడితో, దృఢమైన అల్లికతో కూడిన సంప్రదాయ వెండి పట్టీల జత.',
       weight: 120.0,
       size: 'Length: 10.5 inches (Standard)',
-      price: 11760,
+      wastage_percent: 7.5,
+      wastage_cost: 0,
+      labour_cost: 950,
+      making_charge_per_gram: 0,
       show_price: 1,
       availability: 'In Stock',
       featured: 1,
@@ -472,7 +668,10 @@ function seedInitialData(db: DatabaseSync) {
       description_te: 'నిత్య దీపారాధనకు మరియు పూజా మందిర శోభకు అనువైన 92.5 స్వచ్ఛమైన వెండి కామాక్షి దీపాల జత.',
       weight: 180.0,
       size: 'Height: 4.5 inches',
-      price: 17640,
+      wastage_percent: 7.5,
+      wastage_cost: 0,
+      labour_cost: 1200,
+      making_charge_per_gram: 0,
       show_price: 1,
       availability: 'In Stock',
       featured: 0,
@@ -493,7 +692,10 @@ function seedInitialData(db: DatabaseSync) {
       description_te: 'నైవేద్య సమర్పణకు మరియు విశిష్ట కానుకలకు అత్యంత అనువైన 92.5 వెండి గిన్నె.',
       weight: 95.0,
       size: 'Diameter: 4 inches',
-      price: 9310,
+      wastage_percent: 7.0,
+      wastage_cost: 0,
+      labour_cost: 650,
+      making_charge_per_gram: 0,
       show_price: 1,
       availability: 'In Stock',
       featured: 0,
@@ -514,7 +716,10 @@ function seedInitialData(db: DatabaseSync) {
       description_te: 'ఆయుర్వేద ఆరోగ్య ప్రయోజనాలతో, స్వచ్ఛమైన 92.5 వెండితో తయారుచేసిన సాంప్రదాయ వెండి గ్లాసు.',
       weight: 110.0,
       size: 'Height: 3.8 inches, Capacity: 250ml',
-      price: 10780,
+      wastage_percent: 7.0,
+      wastage_cost: 0,
+      labour_cost: 750,
+      making_charge_per_gram: 0,
       show_price: 1,
       availability: 'In Stock',
       featured: 0,
@@ -535,7 +740,10 @@ function seedInitialData(db: DatabaseSync) {
       description_te: 'సర్వ సంపదలను, సకల శుభాలను చేకూర్చే 92.5 వెండి కామధేనువు మరియు దూడ విగ్రహం.',
       weight: 290.0,
       size: 'Length: 5.5 inches, Height: 4 inches',
-      price: 28420,
+      wastage_percent: 8.5,
+      wastage_cost: 0,
+      labour_cost: 1950,
+      making_charge_per_gram: 0,
       show_price: 1,
       availability: 'In Stock',
       featured: 1,
@@ -549,18 +757,29 @@ function seedInitialData(db: DatabaseSync) {
     INSERT INTO products (
       code, title, title_te, metal, category, category_te, product_type,
       purity, description, description_te, weight, size, price, show_price,
+      wastage_percent, wastage_cost, labour_cost, making_charge_per_gram,
       availability, featured, new_arrival, image_path, image_paths
     ) VALUES (
       ?, ?, ?, ?, ?, ?, ?,
       ?, ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?,
       ?, ?, ?, ?, ?
     )
   `);
 
   for (const p of products) {
+    // Initial dynamic price calculation
+    const rate = (p.metal === 'Gold') 
+      ? (p.purity.includes('24K') ? 7650 : (p.purity.includes('18K') ? 5750 : 7020))
+      : 98;
+    const baseMetal = Math.round(p.weight * rate);
+    const wastage = Math.round((baseMetal * p.wastage_percent) / 100);
+    const autoPrice = baseMetal + wastage + p.labour_cost;
+
     insertProd.run(
       p.code, p.title, p.title_te, p.metal, p.category, p.category_te, p.product_type,
-      p.purity, p.description, p.description_te, p.weight, p.size, p.price, p.show_price,
+      p.purity, p.description, p.description_te, p.weight, p.size, autoPrice, p.show_price,
+      p.wastage_percent, p.wastage_cost, p.labour_cost, p.making_charge_per_gram,
       p.availability, p.featured, p.new_arrival, p.image_path, p.image_paths
     );
   }
@@ -571,7 +790,7 @@ function seedInitialData(db: DatabaseSync) {
       name: 'Ramesh Reddy (రమేష్ రెడ్డి)',
       rating: 5,
       review: 'Purchased 22K Lakshmi Kasu Haram for my daughter wedding in Proddatur. Purity, hallmark certification and customer respect at VADDI Jewellery is unmatched!',
-      review_te: 'మా అమ్మాయి పెళ్ళికి 22K లక్ష్మీ కాసుల హారం తీసుకున్నాము. ప్రొద్దుటూరులో హాల్‌మార్క్ నమ్మకం, స్వచ్ఛత మరియు మర్యాదలో వడ్డీ జ్యువెలరీకి సాటి ఎవరూ లేరు!',
+      review_te: 'మా అమ్మాయి పెళ్ళికి 22K లక్ష్మీ కాసుల హారం తీసుకున్నాము. ప్రొద్దుటూరులో హాల్‌మార్క్ నమ్మకం, స్వచ్ఛత మరియు మర్యాదలో వద్ధి జ్యువెలరీకి సాటి ఎవరూ లేరు!',
       verified: 1,
       date: '12 Feb 2026'
     },

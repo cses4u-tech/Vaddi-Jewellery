@@ -54,7 +54,7 @@ export const StoreLocationGuide: React.FC<StoreLocationGuideProps> = ({ settings
                 Heritage Showroom
               </span>
               <h3 className="font-serif-luxury text-2xl sm:text-3xl font-bold text-stone-900">
-                {language === 'te' ? 'వడ్డీ జ్యువెలరీ • ప్రొద్దుటూరు' : 'VADDI Jewellery Showroom'}
+                {language === 'te' ? 'వద్ధి జ్యువెలరీ • ప్రొద్దుటూరు' : 'VADDI Jewellery Showroom'}
               </h3>
             </div>
 
@@ -68,7 +68,7 @@ export const StoreLocationGuide: React.FC<StoreLocationGuideProps> = ({ settings
                   {t('showroom_address_title')}
                 </span>
                 <p className="font-medium text-stone-800">
-                  {language === 'te' ? 'వి.ఎన్.ఆర్ & బ్రదర్స్, వడ్డీ కాంప్లెక్స్' : 'VNR & brothers, Vaddi Complex'}
+                  {language === 'te' ? 'వి.ఎన్.ఆర్ & బ్రదర్స్, వద్ధి కాంప్లెక్స్' : 'VNR & brothers, Vaddi Complex'}
                 </p>
                 <p className="text-stone-600">
                   {language === 'te' ? 'సుందరాచార్యుల వీధి, సర్వకట్ట' : 'Sundaracharyula St, Sarvakatta'}

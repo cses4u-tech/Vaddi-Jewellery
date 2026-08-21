@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Product, ShowroomSettings } from '../types';
 import { useLanguage } from '../context/LanguageContext';
+import { calculateProductPriceBreakdown } from '../utils/pricing';
 import {
   X,
   Award,
@@ -11,7 +12,9 @@ import {
   Sparkles,
   MapPin,
   CheckCircle2,
-  Calendar
+  Calendar,
+  Zap,
+  Calculator,
 } from 'lucide-react';
 
 interface ProductDetailModalProps {
@@ -53,12 +56,17 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const phone = settings?.phone || '+91 9650052262';
   const whatsappNumber = (settings?.whatsapp || '919650052262').replace(/[^0-9]/g, '');
 
+  // Calculate dynamic auto-calculated price breakdown
+  const breakdown = calculateProductPriceBreakdown(product, settings);
+
   const whatsappMessage =
     language === 'te'
-      ? `నమస్కారం వడ్డీ జ్యువెలరీ, నేను ఈ ఆభరణం గురించి పూర్తి వివరాలు మరియు ప్రస్తుత లైవ్ రేటు ప్రకారం కొటేషన్ కోరుతున్నాను:\n\n💎 ఆభరణం: ${title}\n🏷️ కోడ్: ${product.code}\n⚖️ తూకం: ${product.weight} గ్రాములు\n✨ స్వచ్ఛత: ${product.purity}\n📂 కేటగిరీ: ${category}\n\nదయచేసి త్వరగా సమాధానం ఇవ్వగలరు.`
-      : `Hello VADDI Jewellery, I would like to enquire about this jewellery piece from your showroom catalog:\n\n💎 Product: ${title}\n🏷️ Code: ${product.code}\n⚖️ Weight: ${product.weight}g\n✨ Purity: ${product.purity}\n📂 Category: ${category}\n\nPlease let me know the estimated pricing and showroom availability.`;
+      ? `నమస్కారం వద్ధి జ్యువెలరీ, నేను ఈ ఆభరణం గురించి పూర్తి వివరాలు మరియు ప్రస్తుత లైవ్ రేటు ప్రకారం కొటేషన్ కోరుతున్నాను:\n\n💎 ఆభరణం: ${title}\n🏷️ కోడ్: ${product.code}\n⚖️ తూకం: ${product.weight} గ్రాములు\n✨ స్వచ్ఛత: ${product.purity}\n💰 ప్రస్తుత ధర: ₹${breakdown.totalPrice.toLocaleString('en-IN')} (తరుగు: ${breakdown.wastagePercent}%, మజూరీ: ₹${breakdown.labourCost.toLocaleString('en-IN')})\n📂 కేటగిరీ: ${category}\n\nదయచేసి త్వరగా సమాధానం ఇవ్వగలరు.`
+      : `Hello VADDI Jewellery, I would like to enquire about this jewellery piece from your showroom catalog:\n\n💎 Product: ${title}\n🏷️ Code: ${product.code}\n⚖️ Weight: ${product.weight}g\n✨ Purity: ${product.purity}\n💰 Today's Auto Price: ₹${breakdown.totalPrice.toLocaleString('en-IN')} (VA: ${breakdown.wastagePercent}%, Labour: ₹${breakdown.labourCost.toLocaleString('en-IN')})\n📂 Category: ${category}\n\nPlease let me know the showroom availability and purchase details.`;
 
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+
+  const showPrice = product.show_price !== 0;
 
   return (
     <div
@@ -134,7 +142,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 text-xs text-amber-900 space-y-1">
               <div className="flex items-center gap-1.5 font-bold text-amber-950">
                 <ShieldCheck className="w-4 h-4 text-amber-700" />
-                <span>{language === 'te' ? 'వడ్డీ జ్యువెలరీ స్వచ్ఛత గ్యారెంటీ' : 'VADDI Showroom Authenticity'}</span>
+                <span>{language === 'te' ? 'వద్ధి జ్యువెలరీ స్వచ్ఛత గ్యారెంటీ' : 'VADDI Showroom Authenticity'}</span>
               </div>
               <p className="text-[11px] text-amber-800 leading-relaxed">
                 {language === 'te'
@@ -144,8 +152,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             </div>
           </div>
 
-          {/* Right Column: Detailed Specifications and CTAs */}
-          <div className="md:col-span-6 flex flex-col justify-between space-y-6">
+          {/* Right Column: Detailed Specifications and Price Breakdown */}
+          <div className="md:col-span-6 flex flex-col justify-between space-y-5">
             <div className="space-y-4">
               {/* Product Code & Tags */}
               <div className="flex items-center gap-2">
@@ -167,28 +175,77 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 {title}
               </h2>
 
-              {/* Price Row */}
-              <div className="bg-stone-50 rounded-xl p-3.5 border border-stone-200">
-                {product.show_price && product.price ? (
-                  <div>
-                    <span className="text-xs text-stone-500 block mb-0.5">{t('approx_price')}</span>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-extrabold text-stone-950">
-                        ₹{Number(product.price).toLocaleString('en-IN')}
-                      </span>
-                      <span className="text-xs text-stone-500 font-normal">
-                        ({language === 'te' ? 'సుమారు షోరూమ్ ధర' : 'Estimated showroom price'})
+              {/* TRANSPARENT PRICING BREAKDOWN BOX */}
+              <div className="bg-stone-50 rounded-xl p-4 border border-stone-200 space-y-3">
+                {showPrice ? (
+                  <div className="space-y-3">
+                    <div className="flex items-baseline justify-between border-b border-stone-200 pb-2.5">
+                      <div>
+                        <span className="text-[11px] text-stone-500 block font-semibold">
+                          {language === 'te' ? 'నేటి లైవ్ రేటు ప్రకారం సుమారు ధర' : "Today's Live Showroom Price"}
+                        </span>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl sm:text-3xl font-extrabold text-stone-950">
+                            ₹{breakdown.totalPrice.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                      </div>
+
+                      <span className="flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-100 px-2 py-1 rounded-full border border-amber-300">
+                        <Zap className="w-3.5 h-3.5 text-amber-700" />
+                        <span>Live Auto-Sync</span>
                       </span>
                     </div>
+
+                    {/* Breakdown details */}
+                    <div className="space-y-1.5 text-xs text-stone-700 bg-white p-3 rounded-lg border border-stone-200">
+                      <div className="flex items-center justify-between">
+                        <span className="text-stone-500">
+                          Metal Value ({breakdown.weightGrams}g × ₹{breakdown.ratePerGram.toLocaleString('en-IN')}/g):
+                        </span>
+                        <span className="font-bold text-stone-900">
+                          ₹{breakdown.metalBasePrice.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-stone-500">
+                          Wastage Charges (తరుగు / VA {breakdown.wastagePercent}%):
+                        </span>
+                        <span className="font-bold text-amber-900">
+                          +₹{breakdown.wastageAmount.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-stone-500">
+                          Labour / Making Cost (మజూరీ ఖర్చులు):
+                        </span>
+                        <span className="font-bold text-stone-900">
+                          +₹{breakdown.labourCost.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+
+                      <div className="border-t border-stone-200 pt-1.5 flex items-center justify-between font-extrabold text-stone-950 text-sm">
+                        <span>Total Showroom Estimation:</span>
+                        <span className="text-[#8C6D23]">
+                          ₹{breakdown.totalPrice.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-[10px] text-stone-500 leading-tight">
+                      * {language === 'te' ? 'ధర నేటి మార్కెట్ రేట్ ఆధారంగా ఆటోమేటిక్ గా లెక్కించబడింది. GST వర్తించును.' : 'Price auto-calculated based on daily Proddatur bullion rate, wastage & labour charges. GST as applicable.'}
+                    </p>
                   </div>
                 ) : (
                   <div>
                     <span className="text-sm font-bold text-[#8C6D23] bg-[#C5A869]/15 px-3 py-1 rounded inline-block">
                       {t('price_on_request')}
                     </span>
+                    <p className="text-[11px] text-stone-500 mt-1.5 leading-tight">{t('price_note')}</p>
                   </div>
                 )}
-                <p className="text-[11px] text-stone-500 mt-1.5 leading-tight">{t('price_note')}</p>
               </div>
 
               {/* Specifications Table */}
@@ -211,6 +268,14 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                     <span className="font-bold text-stone-950 text-sm">
                       {product.weight} {t('grams')}
                     </span>
+                  </div>
+                  <div className="grid grid-cols-2 px-3.5 py-2">
+                    <span className="text-stone-500">Wastage (VA %)</span>
+                    <span className="font-semibold text-amber-900">{breakdown.wastagePercent}%</span>
+                  </div>
+                  <div className="grid grid-cols-2 px-3.5 py-2">
+                    <span className="text-stone-500">Labour Cost</span>
+                    <span className="font-semibold text-stone-900">₹{breakdown.labourCost.toLocaleString('en-IN')}</span>
                   </div>
                   {product.size && (
                     <div className="grid grid-cols-2 px-3.5 py-2">

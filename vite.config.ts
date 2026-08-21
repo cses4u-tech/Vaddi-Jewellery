@@ -1,7 +1,6 @@
 import { defineConfig, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
-import { handleApiRequest } from './src/server/api';
 
 function apiServerPlugin(): Plugin {
   return {
@@ -12,6 +11,7 @@ function apiServerPlugin(): Plugin {
         const originalUrl = (req as any).originalUrl || '';
         if (reqUrl.startsWith('/api') || originalUrl.startsWith('/api')) {
           try {
+            const { handleApiRequest } = await import('./src/server/api');
             const handled = await handleApiRequest(req, res);
             if (handled) return;
           } catch (err) {
@@ -31,6 +31,7 @@ function apiServerPlugin(): Plugin {
         const originalUrl = (req as any).originalUrl || '';
         if (reqUrl.startsWith('/api') || originalUrl.startsWith('/api')) {
           try {
+            const { handleApiRequest } = await import('./src/server/api');
             const handled = await handleApiRequest(req, res);
             if (handled) return;
           } catch (err) {

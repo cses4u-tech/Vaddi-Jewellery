@@ -33,7 +33,7 @@ export const Footer: React.FC<FooterProps> = ({
   const phone = settings?.phone || '+91 9650052262';
   const whatsappUrl = `https://wa.me/${(settings?.whatsapp || '919650052262').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
     language === 'te'
-      ? 'నమస్కారం వడ్డీ జ్యువెలరీ, నేను మీ షోరూమ్ కలెక్షన్ గురించి సమాచారం తెలుసుకోవాలనుకుంటున్నాను.'
+      ? 'నమస్కారం వద్ధి జ్యువెలరీ, నేను మీ షోరూమ్ కలెక్షన్ గురించి సమాచారం తెలుసుకోవాలనుకుంటున్నాను.'
       : 'Hello VADDI Jewellery, I would like to inquire about your jewellery showroom collection.'
   )}`;
 
@@ -49,7 +49,7 @@ export const Footer: React.FC<FooterProps> = ({
               </div>
               <div>
                 <span className="font-serif-luxury font-bold text-lg text-[#FDFCFB] tracking-wide block">
-                  {language === 'te' ? 'వడ్డీ జ్యువెలరీ' : 'VADDI Jewellery'}
+                  {language === 'te' ? 'వద్ధి జ్యువెలరీ' : 'VADDI Jewellery'}
                 </span>
                 <span className="text-[10px] text-[#C5A869] font-bold uppercase tracking-widest block">
                   Proddatur • Andhra Pradesh

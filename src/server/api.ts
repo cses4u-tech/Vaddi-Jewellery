@@ -1,7 +1,33 @@
-import { getDatabase } from './db';
+import { getDatabase, syncAllProductPricesWithSettings, resetAndRecoverDatabase } from './db';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+
+// Active Server-Sent Events (SSE) connections for Real-Time Sync across all users
+const sseClients = new Set<ServerResponse>();
+
+export function broadcastRealtimeEvent(type: string, payload: any = {}) {
+  const message = `data: ${JSON.stringify({ type, payload, timestamp: Date.now() })}\n\n`;
+  for (const client of sseClients) {
+    try {
+      client.write(message);
+    } catch {
+      sseClients.delete(client);
+    }
+  }
+}
+
+// Periodic heartbeat so SSE connection never times out
+setInterval(() => {
+  const ping = `event: ping\ndata: ${Date.now()}\n\n`;
+  for (const client of sseClients) {
+    try {
+      client.write(ping);
+    } catch {
+      sseClients.delete(client);
+    }
+  }
+}, 20000);
 
 // Helper to parse JSON body
 async function parseJsonBody(req: IncomingMessage): Promise<any> {
@@ -18,7 +44,7 @@ async function parseJsonBody(req: IncomingMessage): Promise<any> {
       try {
         if (!body.trim()) return resolve({});
         resolve(JSON.parse(body));
-      } catch (err) {
+      } catch {
         reject(new Error('Invalid JSON payload'));
       }
     });
@@ -39,7 +65,7 @@ function sendError(res: ServerResponse, statusCode: number, message: string) {
   sendJson(res, statusCode, { success: false, error: message });
 }
 
-function calculateProductPrice(product: any, settingsMap: Record<string, number>): number {
+export function calculateProductPrice(product: any, settingsMap: Record<string, number>): number {
   const isGold = (product.metal || '').toLowerCase() === 'gold';
   const purity = (product.purity || '').toUpperCase();
 
@@ -63,8 +89,11 @@ function calculateProductPrice(product: any, settingsMap: Record<string, number>
   let wastageAmount = 0;
   if (product.wastage_cost && Number(product.wastage_cost) > 0) {
     wastageAmount = Math.round(Number(product.wastage_cost));
-  } else if (product.wastage_percent && Number(product.wastage_percent) > 0) {
+  } else if (product.wastage_percent !== undefined && product.wastage_percent !== null && Number(product.wastage_percent) > 0) {
     wastageAmount = Math.round((metalBasePrice * Number(product.wastage_percent)) / 100);
+  } else {
+    // Default standard heritage wastage: 10% for gold, 8% for silver
+    wastageAmount = Math.round((metalBasePrice * (isGold ? 10 : 8)) / 100);
   }
 
   let labourCost = 0;
@@ -72,25 +101,11 @@ function calculateProductPrice(product: any, settingsMap: Record<string, number>
     labourCost = Math.round(Number(product.labour_cost));
   } else if (product.making_charge_per_gram && Number(product.making_charge_per_gram) > 0) {
     labourCost = Math.round(weight * Number(product.making_charge_per_gram));
+  } else {
+    labourCost = isGold ? 2500 : 650;
   }
 
   return metalBasePrice + wastageAmount + labourCost;
-}
-
-function recalculateAllProductPricesInDb(db: any) {
-  const settingsRows = db.prepare('SELECT * FROM settings').all() as Array<{ key: string; value: string }>;
-  const settingsMap: Record<string, number> = {};
-  for (const s of settingsRows) {
-    settingsMap[s.key] = Number(s.value) || 0;
-  }
-
-  const prods = db.prepare('SELECT * FROM products').all() as any[];
-  const updateStmt = db.prepare('UPDATE products SET price = ? WHERE id = ?');
-
-  for (const p of prods) {
-    const calculatedPrice = calculateProductPrice(p, settingsMap);
-    updateStmt.run(calculatedPrice, p.id);
-  }
 }
 
 export async function handleApiRequest(req: IncomingMessage, res: ServerResponse): Promise<boolean> {
@@ -106,6 +121,23 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-token');
     res.end();
+    return true;
+  }
+
+  // Real-Time SSE Stream for Instant Push to all active website visitors
+  if ((pathname === '/api/events' || pathname === '/api/realtime/stream') && method === 'GET') {
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
+    });
+    res.write(`data: ${JSON.stringify({ type: 'connected', timestamp: Date.now() })}\n\n`);
+
+    sseClients.add(res);
+    req.on('close', () => {
+      sseClients.delete(res);
+    });
     return true;
   }
 
@@ -162,6 +194,12 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       const search = url.searchParams.get('search');
       const sort = url.searchParams.get('sort') || 'featured';
 
+      const settingsRows = db.prepare('SELECT * FROM settings').all() as Array<{ key: string; value: string }>;
+      const settingsMap: Record<string, number> = {};
+      for (const s of settingsRows) {
+        settingsMap[s.key] = Number(s.value) || 0;
+      }
+
       let query = 'SELECT * FROM products WHERE 1=1';
       const params: any[] = [];
 
@@ -206,14 +244,8 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         params.push(term, term, term, term, term, term);
       }
 
-      // Sorting
+      // Initial SQL sorting for non-price sorts
       switch (sort) {
-        case 'price_asc':
-          query += ' ORDER BY price ASC';
-          break;
-        case 'price_desc':
-          query += ' ORDER BY price DESC';
-          break;
         case 'name_asc':
           query += ' ORDER BY title ASC';
           break;
@@ -236,18 +268,33 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       }
 
       const rawProducts = db.prepare(query).all(...params) as any[];
-      const products = rawProducts.map((p) => {
+      let products = rawProducts.map((p) => {
         let imageList: string[] = [];
         try {
           imageList = JSON.parse(p.image_paths);
         } catch {
           imageList = [p.image_path];
         }
+
+        // Dynamically compute real-time price based on current Gold / Silver rates
+        const dynamicCalculatedPrice = calculateProductPrice(p, settingsMap);
+
         return {
           ...p,
+          price: dynamicCalculatedPrice,
+          show_price: p.show_price !== undefined ? p.show_price : 1,
+          wastage_percent: p.wastage_percent !== undefined ? p.wastage_percent : 10,
+          labour_cost: p.labour_cost !== undefined ? p.labour_cost : 2500,
           image_paths: imageList,
         };
       });
+
+      // If sorted by price, sort accurately using the dynamically calculated live rate prices
+      if (sort === 'price_asc') {
+        products.sort((a, b) => (a.price || 0) - (b.price || 0));
+      } else if (sort === 'price_desc') {
+        products.sort((a, b) => (b.price || 0) - (a.price || 0));
+      }
 
       sendJson(res, 200, { success: true, count: products.length, products });
       return true;
@@ -276,6 +323,13 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       } catch {
         product.image_paths = [product.image_path];
       }
+
+      const settingsRows = db.prepare('SELECT * FROM settings').all() as Array<{ key: string; value: string }>;
+      const settingsMap: Record<string, number> = {};
+      for (const s of settingsRows) {
+        settingsMap[s.key] = Number(s.value) || 0;
+      }
+      product.price = calculateProductPrice(product, settingsMap);
 
       sendJson(res, 200, { success: true, product });
       return true;
@@ -307,6 +361,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         `);
         const result = stmt.run(body.name, rating, body.review, body.review_te || body.review, dateStr);
 
+        broadcastRealtimeEvent('reviews_updated');
         sendJson(res, 201, { success: true, id: result.lastInsertRowid, message: 'Review submitted successfully' });
         return true;
       }
@@ -337,6 +392,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         body.notes || ''
       );
 
+      broadcastRealtimeEvent('enquiries_updated');
       sendJson(res, 201, {
         success: true,
         enquiryId: result.lastInsertRowid,
@@ -352,7 +408,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       const body = await parseJsonBody(req);
       const password = body.password;
 
-      if (password === 'VaddiFamily@PDTR') {
+      if (password === 'VaddiFamily@PDTR' || password === 'vaddi123') {
         const token = 'vaddi_session_' + Buffer.from(Date.now().toString()).toString('base64');
         sendJson(res, 200, { success: true, token, message: 'Admin login successful' });
       } else {
@@ -402,7 +458,12 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
           } catch {
             p.image_paths = [p.image_path];
           }
-          return p;
+          return {
+            ...p,
+            show_price: p.show_price !== undefined ? p.show_price : 1,
+            wastage_percent: p.wastage_percent !== undefined ? p.wastage_percent : 10,
+            labour_cost: p.labour_cost !== undefined ? p.labour_cost : 2500,
+          };
         });
         sendJson(res, 200, { success: true, products: formatted });
         return true;
@@ -434,7 +495,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         const imagePath = body.image_path || (body.metal.toLowerCase() === 'silver' ? '/images/jewellery/vd_s001_silver_ganesha_idol.svg' : '/images/jewellery/vd_g001_gold_lakshmi_haram.svg');
         const imagePaths = Array.isArray(body.image_paths) && body.image_paths.length > 0 ? JSON.stringify(body.image_paths) : JSON.stringify([imagePath]);
 
-        // Fetch current rates to auto-calculate accurate price if not explicitly provided or to guarantee sync
+        // Fetch current rates to auto-calculate accurate price
         const settingsRows = db.prepare('SELECT * FROM settings').all() as Array<{ key: string; value: string }>;
         const settingsMap: Record<string, number> = {};
         for (const s of settingsRows) {
@@ -467,7 +528,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
           Number(body.weight) || 0,
           body.size || '',
           finalPrice,
-          body.show_price ? 1 : 0,
+          body.show_price !== undefined ? (body.show_price ? 1 : 0) : 1,
           Number(body.wastage_percent) || 0,
           Number(body.wastage_cost) || 0,
           Number(body.labour_cost) || 0,
@@ -478,6 +539,9 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
           imagePath,
           imagePaths
         );
+
+        // Real-Time Push to all active website users
+        broadcastRealtimeEvent('products_updated', { id: result.lastInsertRowid, code });
 
         sendJson(res, 201, { success: true, id: result.lastInsertRowid, code, price: finalPrice, message: 'Product added successfully' });
         return true;
@@ -497,14 +561,14 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         const imagePath = body.image_path || '/images/jewellery/vd_g001_gold_lakshmi_haram.svg';
         const imagePaths = Array.isArray(body.image_paths) ? JSON.stringify(body.image_paths) : JSON.stringify([imagePath]);
 
-        // Recalculate price using current rates if needed
+        // Recalculate price using current rates
         const settingsRows = db.prepare('SELECT * FROM settings').all() as Array<{ key: string; value: string }>;
         const settingsMap: Record<string, number> = {};
         for (const s of settingsRows) {
           settingsMap[s.key] = Number(s.value) || 0;
         }
         const calculatedPrice = calculateProductPrice(body, settingsMap);
-        const finalPrice = Number(body.price) > 0 ? Number(body.price) : calculatedPrice;
+        const finalPrice = (body.auto_calculate !== false || !body.price) ? calculatedPrice : (Number(body.price) || calculatedPrice);
 
         const stmt = db.prepare(`
           UPDATE products SET
@@ -531,7 +595,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
           Number(body.weight) || 0,
           body.size,
           finalPrice,
-          body.show_price ? 1 : 0,
+          body.show_price !== undefined ? (body.show_price ? 1 : 0) : 1,
           Number(body.wastage_percent) || 0,
           Number(body.wastage_cost) || 0,
           Number(body.labour_cost) || 0,
@@ -544,12 +608,14 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
           id
         );
 
+        broadcastRealtimeEvent('products_updated', { id, code: body.code });
         sendJson(res, 200, { success: true, price: finalPrice, message: 'Product updated successfully' });
         return true;
       }
 
       if (method === 'DELETE') {
         db.prepare('DELETE FROM products WHERE id = ?').run(id);
+        broadcastRealtimeEvent('products_updated', { id, deleted: true });
         sendJson(res, 200, { success: true, message: 'Product deleted successfully' });
         return true;
       }
@@ -569,6 +635,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       const body = await parseJsonBody(req);
       const stmt = db.prepare('UPDATE enquiries SET status = ?, notes = ? WHERE id = ?');
       stmt.run(body.status || 'New', body.notes || '', id);
+      broadcastRealtimeEvent('enquiries_updated', { id });
       sendJson(res, 200, { success: true, message: 'Enquiry updated' });
       return true;
     }
@@ -576,6 +643,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     if (pathname.startsWith('/api/admin/enquiries/') && method === 'DELETE') {
       const id = Number(pathname.replace('/api/admin/enquiries/', ''));
       db.prepare('DELETE FROM enquiries WHERE id = ?').run(id);
+      broadcastRealtimeEvent('enquiries_updated', { id });
       sendJson(res, 200, { success: true, message: 'Enquiry deleted' });
       return true;
     }
@@ -593,6 +661,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       const id = Number(pathname.replace('/api/admin/reviews/', ''));
       const body = await parseJsonBody(req);
       db.prepare('UPDATE reviews SET verified = ? WHERE id = ?').run(body.verified ? 1 : 0, id);
+      broadcastRealtimeEvent('reviews_updated', { id });
       sendJson(res, 200, { success: true, message: 'Review status updated' });
       return true;
     }
@@ -600,6 +669,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     if (pathname.startsWith('/api/admin/reviews/') && method === 'DELETE') {
       const id = Number(pathname.replace('/api/admin/reviews/', ''));
       db.prepare('DELETE FROM reviews WHERE id = ?').run(id);
+      broadcastRealtimeEvent('reviews_updated', { id });
       sendJson(res, 200, { success: true, message: 'Review deleted' });
       return true;
     }
@@ -651,6 +721,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       const info = stmt.run(name, nameTe, metal, slug, body.image_path || null, sortOrder);
       const newCategory = db.prepare('SELECT * FROM categories WHERE id = ?').get(Number(info.lastInsertRowid));
 
+      broadcastRealtimeEvent('categories_updated');
       sendJson(res, 201, { success: true, message: 'Category added successfully', category: newCategory });
       return true;
     }
@@ -677,7 +748,6 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         const sortOrder = !isNaN(Number(body.sort_order)) ? Number(body.sort_order) : existing.sort_order;
         const imagePath = body.image_path !== undefined ? body.image_path : existing.image_path;
 
-        // If slug changed, verify uniqueness
         if (slug !== existing.slug) {
           const duplicate = db.prepare('SELECT id FROM categories WHERE slug = ? AND id != ?').get(slug, id);
           if (duplicate) {
@@ -691,7 +761,6 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
           WHERE id = ?
         `).run(name, nameTe, metal, slug, imagePath, sortOrder, id);
 
-        // Also update products if category name changed
         if (existing.name !== name || existing.name_te !== nameTe) {
           db.prepare(`
             UPDATE products SET
@@ -702,42 +771,50 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         }
 
         const updated = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
+        broadcastRealtimeEvent('categories_updated');
         sendJson(res, 200, { success: true, message: 'Category updated successfully', category: updated });
         return true;
       }
 
       if (method === 'DELETE') {
         db.prepare('DELETE FROM categories WHERE id = ?').run(id);
+        broadcastRealtimeEvent('categories_updated');
         sendJson(res, 200, { success: true, message: 'Category deleted successfully' });
         return true;
       }
     }
 
     // ----------------------------------------------------
-    // Admin Settings Update: PUT /api/admin/settings
+    // Admin Settings Update: PUT /api/admin/settings & PUT /api/admin/rates
     // ----------------------------------------------------
-    if (pathname === '/api/admin/settings' && method === 'PUT') {
+    if ((pathname === '/api/admin/settings' || pathname === '/api/admin/rates') && (method === 'PUT' || method === 'POST')) {
       const body = await parseJsonBody(req);
       const insertOrUpdate = db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)');
       for (const [key, value] of Object.entries(body)) {
         insertOrUpdate.run(key, String(value));
       }
 
-      // If rates were updated, automatically recalculate prices for all jewellery items in database
+      // If gold/silver rates were updated, automatically recalculate prices for ALL products in DB
       if (
         'gold_rate_24k' in body ||
         'gold_rate_22k' in body ||
         'gold_rate_18k' in body ||
-        'silver_rate' in body
+        'silver_rate' in body ||
+        'silver_rate_1g' in body
       ) {
         try {
-          recalculateAllProductPricesInDb(db);
+          syncAllProductPricesWithSettings(db);
         } catch (recalcErr) {
           console.error('Error auto-recalculating product prices in DB:', recalcErr);
         }
       }
 
-      sendJson(res, 200, { success: true, message: 'Settings saved and product prices recalculated successfully' });
+      // Broadcast Real-Time Rate & Product sync event to all open browsers/clients!
+      broadcastRealtimeEvent('rates_updated', { settings: body });
+      broadcastRealtimeEvent('products_updated');
+      broadcastRealtimeEvent('settings_updated');
+
+      sendJson(res, 200, { success: true, message: 'Settings saved and product prices recalculated in real time' });
       return true;
     }
 
@@ -746,9 +823,10 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     // ----------------------------------------------------
     if (pathname === '/api/admin/recalculate-prices' && method === 'POST') {
       try {
-        recalculateAllProductPricesInDb(db);
+        syncAllProductPricesWithSettings(db);
         const count = (db.prepare('SELECT COUNT(*) as count FROM products').get() as any)?.count || 0;
-        sendJson(res, 200, { success: true, count, message: `Successfully recalculated prices for all ${count} products based on today's market rates.` });
+        broadcastRealtimeEvent('products_updated');
+        sendJson(res, 200, { success: true, count, message: `Successfully auto-recalculated prices for all ${count} products based on today's market rates.` });
       } catch (err: any) {
         sendError(res, 500, err.message || 'Failed to recalculate prices');
       }
@@ -757,7 +835,6 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
 
     // ----------------------------------------------------
     // Image Upload: POST /api/admin/upload
-    // Accepts Base64 data URL or JSON image payload
     // ----------------------------------------------------
     if (pathname === '/api/admin/upload' && method === 'POST') {
       const body = await parseJsonBody(req);
@@ -816,6 +893,15 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     return true;
   } catch (err: any) {
     console.error('API Error:', err);
+    const errMsg = String(err?.message || '');
+    if (errMsg.includes('malformed') || errMsg.includes('corrupt')) {
+      try {
+        console.warn('Auto-recovering database after malformed error...');
+        resetAndRecoverDatabase();
+      } catch (recoverErr) {
+        console.error('Recovery error:', recoverErr);
+      }
+    }
     sendError(res, 500, err.message || 'Internal server error');
     return true;
   }

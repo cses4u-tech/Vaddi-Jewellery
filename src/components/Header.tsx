@@ -161,7 +161,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Brand Typography */}
             <div className="flex flex-col">
               <span className="font-serif-luxury text-2xl sm:text-3xl font-bold tracking-wider text-[#1A1A1A] uppercase leading-none">
-                {language === 'te' ? 'వడ్డీ జ్యువెలరీ' : 'VADDI'}
+                {language === 'te' ? 'వద్ధి జ్యువెలరీ' : 'VADDI'}
               </span>
               <span className="text-[10px] sm:text-[11px] font-semibold tracking-[0.25em] text-[#9A9483] uppercase mt-0.5">
                 {language === 'te' ? 'తరతరాల నమ్మకమైన షోరూమ్ • ప్రొద్దుటూరు' : 'Jewellery • Proddatur'}

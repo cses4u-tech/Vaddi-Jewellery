@@ -17,7 +17,9 @@ import {
   createAdminCategory,
   updateAdminCategory,
   deleteAdminCategory,
+  recalculateAdminPrices,
 } from '../services/api';
+import { calculateProductPriceBreakdown } from '../utils/pricing';
 import {
   X,
   Lock,
@@ -44,6 +46,8 @@ import {
   Tags,
   Layers,
   Check,
+  Calculator,
+  Zap,
 } from 'lucide-react';
 
 interface AdminPortalModalProps {
@@ -137,7 +141,12 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
   const [formWeight, setFormWeight] = useState<number>(0);
   const [formSize, setFormSize] = useState('');
   const [formPrice, setFormPrice] = useState<number>(0);
-  const [formShowPrice, setFormShowPrice] = useState<number>(0);
+  const [formShowPrice, setFormShowPrice] = useState<number>(1);
+  const [formWastagePercent, setFormWastagePercent] = useState<number>(10.0);
+  const [formWastageCost, setFormWastageCost] = useState<number>(0);
+  const [formLabourCost, setFormLabourCost] = useState<number>(2500);
+  const [formMakingChargePerGram, setFormMakingChargePerGram] = useState<number>(0);
+  const [formAutoCalculatePrice, setFormAutoCalculatePrice] = useState<boolean>(true);
   const [formAvailability, setFormAvailability] = useState<'In Stock' | 'Custom Order' | 'Out of Stock'>('In Stock');
   const [formFeatured, setFormFeatured] = useState<boolean>(false);
   const [formNewArrival, setFormNewArrival] = useState<boolean>(false);
@@ -149,6 +158,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [showUrlFallback, setShowUrlFallback] = useState(false);
+  const [isRecalculatingAll, setIsRecalculatingAll] = useState(false);
 
   // Enquiries State
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
@@ -163,76 +173,53 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
   const [isSavingRates, setIsSavingRates] = useState(false);
 
   // Showroom Settings Form State
-  const [shopName, setShopName] = useState(settings?.shop_name || 'VADDI Jewellery');
-  const [shopNameTe, setShopNameTe] = useState(settings?.shop_name_te || 'వధి జ్యువెలరీ');
-  const [shopTagline, setShopTagline] = useState(settings?.tagline || '100% BIS Hallmarked Gold & 92.5 Fine Silver Showroom');
-  const [shopTaglineTe, setShopTaglineTe] = useState(settings?.tagline_te || '100% BIS హాల్మార్క్ బంగారం & 92.5 స్వచ్ఛమైన వెండి షోరూమ్');
-  const [shopPhone, setShopPhone] = useState(settings?.phone || '+91 9650052262');
-  const [shopWhatsapp, setShopWhatsapp] = useState(settings?.whatsapp || '+91 9650052262');
-  const [shopAddress, setShopAddress] = useState(settings?.address || 'VNR & brothers, Vaddi Complex, Sundaracharyula St, Sarvakatta');
-  const [shopCityPincode, setShopCityPincode] = useState(settings?.city_state_pincode || 'Proddatur, Andhra Pradesh 516360');
-  const [shopMapsUrl, setShopMapsUrl] = useState(settings?.google_maps_url || 'https://maps.app.goo.gl/LcQVnVkd3HuDWsgi9');
-  const [shopHours, setShopHours] = useState(settings?.opening_hours || '10:00 AM - 9:30 PM (All 7 Days)');
+  const [shopName, setShopName] = useState(settings?.shop_name || defaultShowroomSettings.shop_name);
+  const [shopNameTe, setShopNameTe] = useState(settings?.shop_name_te || defaultShowroomSettings.shop_name_te);
+  const [shopTagline, setShopTagline] = useState(settings?.tagline || defaultShowroomSettings.tagline);
+  const [shopTaglineTe, setShopTaglineTe] = useState(settings?.tagline_te || defaultShowroomSettings.tagline_te);
+  const [shopPhone, setShopPhone] = useState(settings?.phone || defaultShowroomSettings.phone);
+  const [shopWhatsapp, setShopWhatsapp] = useState(settings?.whatsapp || defaultShowroomSettings.whatsapp);
+  const [shopAddress, setShopAddress] = useState(settings?.address || defaultShowroomSettings.address);
+  const [shopCityPincode, setShopCityPincode] = useState(settings?.city_state_pincode || defaultShowroomSettings.city_state_pincode);
+  const [shopMapsUrl, setShopMapsUrl] = useState(settings?.google_maps_url || defaultShowroomSettings.google_maps_url);
+  const [shopHours, setShopHours] = useState(settings?.opening_hours || defaultShowroomSettings.opening_hours);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
-  // Global Notification / Feedback
+  // Action Feedback Alert
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const showFeedback = (type: 'success' | 'error', message: string) => {
     setFeedback({ type, message });
-    setTimeout(() => setFeedback(null), 3500);
+    setTimeout(() => {
+      setFeedback(null);
+    }, 4500);
   };
 
-  // Sync initial settings when modal opens or settings update
+  // Sync state with settings prop
   useEffect(() => {
     if (settings) {
       setRate24K(settings.gold_rate_24k || '7650');
       setRate22K(settings.gold_rate_22k || '7020');
       setRate18K(settings.gold_rate_18k || '5750');
       setRateSilver(settings.silver_rate || '98');
-      setShopName(settings.shop_name || 'VADDI Jewellery');
-      setShopNameTe(settings.shop_name_te || 'వధి జ్యువెలరీ');
-      setShopTagline(settings.tagline || '100% BIS Hallmarked Gold & 92.5 Fine Silver Showroom');
-      setShopTaglineTe(settings.tagline_te || '100% BIS హాల్మార్క్ బంగారం & 92.5 స్వచ్ఛమైన వెండి షోరూమ్');
-      setShopPhone(settings.phone || '+91 9650052262');
-      setShopWhatsapp(settings.whatsapp || '+91 9650052262');
-      setShopAddress(settings.address || 'VNR & brothers, Vaddi Complex, Sundaracharyula St, Sarvakatta');
-      setShopCityPincode(settings.city_state_pincode || 'Proddatur, Andhra Pradesh 516360');
-      setShopMapsUrl(settings.google_maps_url || 'https://maps.app.goo.gl/LcQVnVkd3HuDWsgi9');
-      setShopHours(settings.opening_hours || '10:00 AM - 9:30 PM (All 7 Days)');
+      setShopName(settings.shop_name || defaultShowroomSettings.shop_name);
+      setShopNameTe(settings.shop_name_te || defaultShowroomSettings.shop_name_te);
+      setShopTagline(settings.tagline || defaultShowroomSettings.tagline);
+      setShopTaglineTe(settings.tagline_te || defaultShowroomSettings.tagline_te);
+      setShopPhone(settings.phone || defaultShowroomSettings.phone);
+      setShopWhatsapp(settings.whatsapp || defaultShowroomSettings.whatsapp);
+      setShopAddress(settings.address || defaultShowroomSettings.address);
+      setShopCityPincode(settings.city_state_pincode || defaultShowroomSettings.city_state_pincode);
+      setShopMapsUrl(settings.google_maps_url || defaultShowroomSettings.google_maps_url);
+      setShopHours(settings.opening_hours || defaultShowroomSettings.opening_hours);
     }
   }, [settings]);
 
-  // Sync categories prop
-  useEffect(() => {
-    if (categories && categories.length > 0) {
-      setAdminCategories(categories);
-    }
-  }, [categories]);
-
-  // Load data when authenticated
-  useEffect(() => {
-    if (token && isOpen) {
-      loadAdminData();
-    }
-  }, [token, isOpen]);
-
-  const loadCategoriesList = async () => {
-    if (!token) return;
-    try {
-      const catsData = await fetchAdminCategories(token);
-      if (catsData) {
-        setAdminCategories(catsData);
-      }
-    } catch (err: any) {
-      console.error('Failed to load categories:', err);
-    }
-  };
-
+  // Load Admin Data when token exists
   const loadAdminData = async () => {
     if (!token) return;
     try {
-      const [statsData, prodsData, enqData, catsData] = await Promise.all([
+      const [statsData, prodsData, enqsData, catsData] = await Promise.all([
         fetchAdminStats(token).catch(() => null),
         fetchAdminProducts(token).catch(() => []),
         fetchAdminEnquiries(token).catch(() => []),
@@ -240,32 +227,55 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
       ]);
       if (statsData) setStats(statsData);
       setProducts(prodsData);
-      setEnquiries(enqData);
+      setEnquiries(enqsData);
       if (catsData && catsData.length > 0) {
         setAdminCategories(catsData);
       }
-    } catch (err: any) {
-      console.error('Failed to load admin data:', err);
+    } catch (err) {
+      console.error('Error fetching admin data:', err);
     }
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const loadCategoriesList = async () => {
+    try {
+      const cats = await fetchAdminCategories(token);
+      setAdminCategories(cats);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen && token) {
+      loadAdminData();
+    }
+  }, [isOpen, token]);
+
+  if (!isOpen) return null;
+
+  // Handle Login
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
     setIsLoggingIn(true);
     try {
-      const authToken = await adminLogin(password);
-      setToken(authToken);
-      sessionStorage.setItem('vaddi_admin_token', authToken);
-      setPassword('');
-      showFeedback('success', 'Logged in to VADDI Showroom Admin Portal');
+      const adminToken = await adminLogin(password);
+      if (adminToken) {
+        setToken(adminToken);
+        sessionStorage.setItem('vaddi_admin_token', adminToken);
+        setPassword('');
+        showFeedback('success', 'Welcome to VADDI Jewellery Admin Portal');
+      } else {
+        setLoginError('Invalid showroom password. Please try again.');
+      }
     } catch (err: any) {
-      setLoginError(err.message || 'Invalid password. (Default is vaddi123)');
+      setLoginError(err.message || 'Authentication failed');
     } finally {
       setIsLoggingIn(false);
     }
   };
 
+  // Handle Logout
   const handleLogout = () => {
     setToken('');
     sessionStorage.removeItem('vaddi_admin_token');
@@ -290,12 +300,28 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
         ...payload,
       };
       onSettingsUpdated(updatedSettings);
-      showFeedback('success', "Today's Gold & Silver rates updated successfully for Proddatur Market!");
+      showFeedback('success', "Today's Gold & Silver rates updated! All product prices automatically recalculated in real time for all users.");
       await loadAdminData();
+      onProductsUpdated();
     } catch (err: any) {
       showFeedback('error', err.message || 'Failed to update rates');
     } finally {
       setIsSavingRates(false);
+    }
+  };
+
+  // Recalculate All Prices Handler
+  const handleRecalculateAllPricesClick = async () => {
+    setIsRecalculatingAll(true);
+    try {
+      const res = await recalculateAdminPrices(token);
+      showFeedback('success', res.message || "All product prices recalculated successfully based on today's rates, wastage & labour costs.");
+      await loadAdminData();
+      onProductsUpdated();
+    } catch (err: any) {
+      showFeedback('error', err.message || 'Failed to recalculate prices');
+    } finally {
+      setIsRecalculatingAll(false);
     }
   };
 
@@ -337,7 +363,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
     const file = files[0];
 
     if (!file.type.startsWith('image/')) {
-      showFeedback('error', 'Please select a valid image file (JPG, PNG, WEBP).');
+      showFeedback('error', 'Please select a valid image file (JPG, PNG, WEBP, SVG).');
       return;
     }
 
@@ -365,7 +391,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
             return [uploadedPath, ...list];
           });
           showFeedback('success', `Jewellery photo "${file.name}" uploaded successfully!`);
-        } catch (uploadErr) {
+        } catch {
           setFormImagePath(dataUrl);
           setFormImagePaths((prev) => {
             const list = prev.filter((p) => p !== dataUrl);
@@ -381,7 +407,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
         showFeedback('error', 'Failed to read image file.');
       };
       reader.readAsDataURL(file);
-    } catch (err: any) {
+    } catch {
       setIsUploadingImage(false);
       showFeedback('error', 'Could not process selected image.');
     }
@@ -474,8 +500,8 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
     setSelectedProduct(null);
     const initialMetal: 'Gold' | 'Silver' = formMetal || 'Gold';
     const matchingCats = adminCategories.filter((c) => c.metal.toLowerCase() === initialMetal.toLowerCase());
-    const defaultCat = matchingCats[0]?.name || (initialMetal === 'Gold' ? 'Gold Harams & Bridal Sets' : 'Silver Pooja Items');
-    const defaultCatTe = matchingCats[0]?.name_te || (initialMetal === 'Gold' ? 'బంగారు హారాలు & నెక్లెస్ లు' : 'వెండి పూజా సామాగ్రి');
+    const defaultCat = matchingCats[0]?.name || (initialMetal === 'Gold' ? 'Gold Harams & Necklaces' : 'Silver God Idols');
+    const defaultCatTe = matchingCats[0]?.name_te || (initialMetal === 'Gold' ? 'బంగారు హారాలు & నెక్లెస్‌లు' : 'వెండి దేవుడి విగ్రహాలు');
 
     setFormCode(`VD-${initialMetal === 'Gold' ? 'G' : 'S'}${Math.floor(100 + Math.random() * 900)}`);
     setFormTitle('');
@@ -484,10 +510,15 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
     setFormCategory(defaultCat);
     setFormCategoryTe(defaultCatTe);
     setFormPurity(initialMetal === 'Gold' ? '22K BIS 916' : '92.5 Sterling Silver');
-    setFormWeight(initialMetal === 'Gold' ? 15.5 : 50);
+    setFormWeight(initialMetal === 'Gold' ? 24.5 : 250);
     setFormSize('Standard');
-    setFormPrice(initialMetal === 'Gold' ? 115000 : 5000);
-    setFormShowPrice(0);
+    setFormWastagePercent(initialMetal === 'Gold' ? 10.0 : 8.0);
+    setFormWastageCost(0);
+    setFormLabourCost(initialMetal === 'Gold' ? 2500 : 1200);
+    setFormMakingChargePerGram(0);
+    setFormAutoCalculatePrice(true);
+    setFormPrice(0);
+    setFormShowPrice(1);
     setFormAvailability('In Stock');
     setFormFeatured(false);
     setFormNewArrival(true);
@@ -510,8 +541,13 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
     setFormPurity(prod.purity);
     setFormWeight(prod.weight);
     setFormSize(prod.size || '');
+    setFormWastagePercent(prod.wastage_percent !== undefined && prod.wastage_percent !== null ? Number(prod.wastage_percent) : (prod.metal === 'Gold' ? 10 : 8));
+    setFormWastageCost(prod.wastage_cost ? Number(prod.wastage_cost) : 0);
+    setFormLabourCost(prod.labour_cost !== undefined && prod.labour_cost !== null ? Number(prod.labour_cost) : (prod.metal === 'Gold' ? 2500 : 1200));
+    setFormMakingChargePerGram(prod.making_charge_per_gram ? Number(prod.making_charge_per_gram) : 0);
+    setFormAutoCalculatePrice(true);
     setFormPrice(prod.price || 0);
-    setFormShowPrice(prod.show_price || 0);
+    setFormShowPrice(prod.show_price !== undefined ? prod.show_price : 1);
     setFormAvailability(prod.availability);
     setFormFeatured(prod.featured === 1);
     setFormNewArrival(prod.new_arrival === 1);
@@ -524,6 +560,20 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
     setIsEditingProduct(true);
   };
 
+  // Live calculation for the product form preview
+  const livePriceBreakdown = calculateProductPriceBreakdown(
+    {
+      metal: formMetal,
+      purity: formPurity,
+      weight: Number(formWeight) || 0,
+      wastage_percent: Number(formWastagePercent) || 0,
+      wastage_cost: Number(formWastageCost) || 0,
+      labour_cost: Number(formLabourCost) || 0,
+      making_charge_per_gram: Number(formMakingChargePerGram) || 0,
+    },
+    settings
+  );
+
   const handleSaveProductForm = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formCode || !formTitle || !formWeight) {
@@ -531,8 +581,13 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
       return;
     }
 
-    const finalMainImage = formImagePath.trim() || (formImagePaths[0] || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=800&auto=format&fit=crop&q=80');
+    const finalMainImage = formImagePath.trim() || (formImagePaths[0] || (formMetal === 'Silver' ? '/images/jewellery/vd_s001_silver_ganesha_idol.svg' : '/images/jewellery/vd_g001_gold_lakshmi_haram.svg'));
     const finalImagePaths = formImagePaths.length > 0 ? formImagePaths : [finalMainImage];
+
+    // Compute final price
+    const finalPrice = formAutoCalculatePrice
+      ? livePriceBreakdown.totalPrice
+      : (Number(formPrice) > 0 ? Number(formPrice) : livePriceBreakdown.totalPrice);
 
     setIsSavingProduct(true);
     try {
@@ -546,7 +601,11 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
         purity: formPurity,
         weight: Number(formWeight),
         size: formSize.trim() || undefined,
-        price: Number(formPrice) || undefined,
+        wastage_percent: Number(formWastagePercent) || 0,
+        wastage_cost: Number(formWastageCost) || 0,
+        labour_cost: Number(formLabourCost) || 0,
+        making_charge_per_gram: Number(formMakingChargePerGram) || 0,
+        price: finalPrice,
         show_price: formShowPrice,
         availability: formAvailability,
         featured: formFeatured ? 1 : 0,
@@ -559,10 +618,10 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
 
       if (selectedProduct) {
         await updateAdminProduct(selectedProduct.id, payload, token);
-        showFeedback('success', `Product ${payload.code} updated successfully`);
+        showFeedback('success', `Product ${payload.code} updated with dynamic price ₹${finalPrice.toLocaleString('en-IN')}`);
       } else {
         await createAdminProduct(payload, token);
-        showFeedback('success', `New product ${payload.code} added to catalog`);
+        showFeedback('success', `New product ${payload.code} added to catalog with price ₹${finalPrice.toLocaleString('en-IN')}`);
       }
 
       setIsEditingProduct(false);
@@ -582,7 +641,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
 
     try {
       await deleteAdminProduct(id, token);
-      showFeedback('success', `Product ${code} removed from catalog`);
+      showFeedback('success', `Product "${code}" deleted from database`);
       await loadAdminData();
       onProductsUpdated();
     } catch (err: any) {
@@ -591,163 +650,157 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
   };
 
   // Enquiries Handlers
-  const handleUpdateEnquiryStatus = async (id: number, newStatus: string) => {
+  const handleUpdateEnquiryStatus = async (id: number, newStatus: string, notes?: string) => {
     try {
-      const notes = editingEnquiryNotes[id];
       await updateAdminEnquiry(id, { status: newStatus, notes }, token);
-      showFeedback('success', `Inquiry status updated to ${newStatus}`);
+      showFeedback('success', `Inquiry #${id} marked as ${newStatus}`);
       await loadAdminData();
     } catch (err: any) {
-      showFeedback('error', err.message || 'Failed to update inquiry');
+      showFeedback('error', err.message || 'Failed to update enquiry status');
     }
   };
 
   const handleDeleteEnquiry = async (id: number) => {
-    if (!window.confirm('Delete this customer inquiry record?')) return;
+    const confirm = window.confirm('Are you sure you want to delete this customer enquiry record?');
+    if (!confirm) return;
+
     try {
       await deleteAdminEnquiry(id, token);
-      showFeedback('success', 'Inquiry deleted');
+      showFeedback('success', 'Enquiry record deleted');
       await loadAdminData();
     } catch (err: any) {
-      showFeedback('error', err.message || 'Failed to delete inquiry');
+      showFeedback('error', err.message || 'Failed to delete enquiry');
     }
   };
 
-  if (!isOpen) return null;
-
-  // Filtered Products
+  // Filtered products in Admin list
   const filteredProducts = products.filter((p) => {
-    const matchesSearch =
-      !productSearch.trim() ||
-      p.code.toLowerCase().includes(productSearch.toLowerCase()) ||
-      p.title.toLowerCase().includes(productSearch.toLowerCase()) ||
-      (p.title_te && p.title_te.toLowerCase().includes(productSearch.toLowerCase())) ||
-      p.category.toLowerCase().includes(productSearch.toLowerCase());
-    const matchesMetal =
-      productMetalFilter === 'All' || p.metal.toLowerCase() === productMetalFilter.toLowerCase();
-    const matchesCategory =
-      productCategoryFilter === 'All' ||
-      p.category === productCategoryFilter ||
-      p.category_te === productCategoryFilter;
-    return matchesSearch && matchesMetal && matchesCategory;
+    if (productMetalFilter !== 'All' && p.metal.toLowerCase() !== productMetalFilter.toLowerCase()) {
+      return false;
+    }
+    if (productCategoryFilter !== 'All' && p.category !== productCategoryFilter) {
+      return false;
+    }
+    if (productSearch.trim()) {
+      const q = productSearch.toLowerCase();
+      return (
+        p.code.toLowerCase().includes(q) ||
+        p.title.toLowerCase().includes(q) ||
+        (p.title_te && p.title_te.toLowerCase().includes(q)) ||
+        p.category.toLowerCase().includes(q)
+      );
+    }
+    return true;
   });
 
-  // Filtered Enquiries
+  // Filtered categories in Admin list
+  const filteredAdminCategories = adminCategories.filter((c) => {
+    if (categoryMetalFilter !== 'All' && c.metal.toLowerCase() !== categoryMetalFilter.toLowerCase()) {
+      return false;
+    }
+    if (categorySearch.trim()) {
+      const q = categorySearch.toLowerCase();
+      return c.name.toLowerCase().includes(q) || (c.name_te && c.name_te.toLowerCase().includes(q)) || c.slug.toLowerCase().includes(q);
+    }
+    return true;
+  });
+
+  // Filtered enquiries
   const filteredEnquiries = enquiries.filter((e) => {
     if (enquiryFilter === 'All') return true;
     return e.status === enquiryFilter;
   });
 
-  // Filtered Categories
-  const filteredCategories = adminCategories.filter((cat) => {
-    const searchLower = categorySearch.toLowerCase().trim();
-    const matchesSearch =
-      !searchLower ||
-      cat.name.toLowerCase().includes(searchLower) ||
-      (cat.name_te && cat.name_te.toLowerCase().includes(searchLower)) ||
-      (cat.slug && cat.slug.toLowerCase().includes(searchLower));
-    const matchesMetal =
-      categoryMetalFilter === 'All' || cat.metal.toLowerCase() === categoryMetalFilter.toLowerCase();
-    return matchesSearch && matchesMetal;
-  });
-
   return (
     <div
-      id="admin-portal-backdrop"
-      className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
+      id="admin-portal-modal-backdrop"
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        id="admin-portal-card"
-        className="bg-white rounded-2xl max-w-6xl w-full h-[90vh] max-h-[850px] shadow-2xl border border-stone-300 flex flex-col overflow-hidden relative"
+        id="admin-portal-modal-card"
+        className="bg-[#F8F7F4] rounded-2xl max-w-6xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-stone-300 relative my-auto overflow-hidden animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Feedback Alert Toast */}
-        {feedback && (
-          <div
-            className={`absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl shadow-lg border text-xs sm:text-sm font-semibold flex items-center gap-2 animate-in slide-in-from-top duration-200 ${
-              feedback.type === 'success'
-                ? 'bg-emerald-900 text-emerald-100 border-emerald-700'
-                : 'bg-rose-900 text-rose-100 border-rose-700'
-            }`}
-          >
-            {feedback.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            ) : (
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-            )}
-            <span>{feedback.message}</span>
-          </div>
-        )}
-
-        {/* Modal Top Header Bar */}
-        <div className="bg-[#1A1A1A] text-white px-5 py-3.5 flex items-center justify-between border-b border-stone-800 shrink-0">
+        {/* Top Header Bar */}
+        <div className="bg-[#1A1A1A] text-white px-6 py-4 flex items-center justify-between border-b border-stone-800 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#C5A869]/20 border border-[#C5A869]/50 flex items-center justify-center text-[#C5A869]">
-              <Lock className="w-4 h-4" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E6CA85] to-[#B38F4D] flex items-center justify-center text-stone-950 font-serif-luxury font-extrabold text-xl shadow-inner">
+              V
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-serif-luxury font-bold text-base text-[#FDFCFB]">
+                <h2 className="font-serif-luxury text-lg sm:text-xl font-bold tracking-wide text-[#FDFCFB]">
                   VADDI Showroom Admin Portal
-                </span>
-                <span className="text-[10px] bg-[#C5A869] text-stone-950 font-extrabold px-2 py-0.5 rounded">
-                  PRODDATUR
+                </h2>
+                <span className="bg-[#C5A869]/20 text-[#E6CA85] text-[10px] font-bold px-2 py-0.5 rounded border border-[#C5A869]/40">
+                  Live Sync
                 </span>
               </div>
-              <span className="text-[11px] text-stone-400 block">
-                {language === 'te' ? 'షోరూమ్ నిర్వహణ & లైవ్ ధరల ఎడిటర్' : 'Inventory, Live Market Rates & Customer Leads'}
-              </span>
+              <p className="text-xs text-stone-400">
+                Proddatur Showroom Management • Real-time DB & Pricing Engine
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {token && (
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer border border-stone-700"
+                title="Log out of admin session"
               >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Logout</span>
+                <LogOut className="w-3.5 h-3.5 text-rose-400" />
+                <span className="hidden sm:inline">Logout</span>
               </button>
             )}
+
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-lg transition-colors cursor-pointer"
+              className="p-2 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-lg transition-colors cursor-pointer border border-stone-700"
+              title="Close Portal (Esc)"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* Modal Body: Login View vs Admin Management Dashboard */}
-        {!token ? (
-          /* Login Screen */
-          <div className="flex-1 flex items-center justify-center p-6 bg-stone-50 overflow-y-auto">
-            <div className="max-w-md w-full bg-white rounded-2xl p-8 border border-stone-200 shadow-md text-center space-y-6">
-              <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 flex items-center justify-center mx-auto shadow-inner">
-                <Lock className="w-8 h-8 text-[#C5A869]" />
-              </div>
+        {/* Global Feedback Banner */}
+        {feedback && (
+          <div
+            className={`px-6 py-2.5 flex items-center gap-2 text-xs font-semibold shrink-0 animate-in slide-in-from-top duration-150 ${
+              feedback.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
+            }`}
+          >
+            {feedback.type === 'success' ? (
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+            ) : (
+              <AlertCircle className="w-4 h-4 shrink-0" />
+            )}
+            <span>{feedback.message}</span>
+          </div>
+        )}
 
-              <div>
+        {/* Main Body */}
+        {!token ? (
+          /* LOGIN SCREEN */
+          <div className="flex-1 p-6 sm:p-12 flex items-center justify-center bg-gradient-to-b from-stone-50 to-[#F8F7F4]">
+            <div className="max-w-md w-full bg-white rounded-2xl p-8 border border-stone-200 shadow-lg space-y-6">
+              <div className="text-center space-y-2">
+                <div className="w-14 h-14 rounded-2xl bg-amber-50 text-[#C5A869] border border-amber-200 mx-auto flex items-center justify-center shadow-inner">
+                  <Lock className="w-7 h-7" />
+                </div>
                 <h3 className="font-serif-luxury text-2xl font-bold text-stone-900">
-                  {language === 'te' ? 'అడ్మిన్ లాగిన్' : 'Showroom Owner Login'}
+                  Showroom Owner Access
                 </h3>
-                <p className="text-xs text-stone-500 mt-1">
-                  Enter your master password to update daily gold/silver rates and manage inventory.
+                <p className="text-xs text-stone-500">
+                  Enter your VADDI Jewellery master password to update daily market rates, manage products, wastage & labour costs, and customer leads.
                 </p>
               </div>
 
-              {loginError && (
-                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-lg flex items-center gap-2 text-left">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-                  <span>{loginError}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleLogin} className="space-y-4 text-left">
+              <form onSubmit={handleLoginSubmit} className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-stone-700 mb-1.5">
                     Admin Password
@@ -757,105 +810,109 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter admin password (default: vaddi123)"
-                    className="w-full px-3.5 py-2.5 text-sm bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-[#C5A869] focus:bg-white text-stone-900"
+                    placeholder="Enter showroom password..."
+                    className="w-full px-4 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#C5A869] focus:bg-white"
                   />
-                  <span className="text-[11px] text-stone-400 mt-1 block">
-                    Default showroom master password is <strong className="text-stone-700">vaddi123</strong>
-                  </span>
                 </div>
+
+                {loginError && (
+                  <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{loginError}</span>
+                  </div>
+                )}
 
                 <button
                   type="submit"
                   disabled={isLoggingIn}
-                  className="w-full py-3 bg-[#1A1A1A] hover:bg-stone-800 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-50"
+                  className="w-full py-3 bg-[#1A1A1A] hover:bg-stone-800 text-white text-sm font-bold rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50"
                 >
-                  <Lock className="w-4 h-4 text-[#C5A869]" />
-                  <span>{isLoggingIn ? 'Verifying Password...' : 'Unlock Admin Portal'}</span>
+                  {isLoggingIn ? 'Verifying...' : 'Unlock Admin Portal'}
                 </button>
               </form>
             </div>
           </div>
         ) : (
-          /* Authenticated Admin Dashboard Layout */
-          <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-stone-100">
+          /* AUTHENTICATED ADMIN DASHBOARD */
+          <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
             {/* Sidebar Navigation */}
-            <div className="w-full md:w-56 bg-white border-b md:border-b-0 md:border-r border-stone-200 p-3 flex md:flex-col gap-1.5 overflow-x-auto md:overflow-y-auto shrink-0">
+            <div className="w-full md:w-64 bg-white border-r border-stone-200 p-4 space-y-1 shrink-0 overflow-y-auto">
               <button
                 type="button"
                 onClick={() => setActiveTab('dashboard')}
-                className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-left whitespace-nowrap ${
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'dashboard'
-                    ? 'bg-[#1A1A1A] text-white shadow-xs'
+                    ? 'bg-[#1A1A1A] text-white shadow-2xs'
                     : 'text-stone-700 hover:bg-stone-100'
                 }`}
               >
                 <LayoutDashboard className="w-4 h-4 text-[#C5A869]" />
-                <span>Dashboard Overview</span>
+                <span>Overview & Stats</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('rates')}
-                className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-left whitespace-nowrap ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'rates'
-                    ? 'bg-[#1A1A1A] text-white shadow-xs'
+                    ? 'bg-[#1A1A1A] text-white shadow-2xs'
                     : 'text-stone-700 hover:bg-stone-100'
                 }`}
               >
-                <Coins className="w-4 h-4 text-amber-500" />
-                <span>Daily Rates (నేటి ధరలు)</span>
+                <div className="flex items-center gap-3">
+                  <Coins className="w-4 h-4 text-[#C5A869]" />
+                  <span>Today's Market Rates</span>
+                </div>
+                <span className="text-[10px] bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded font-extrabold">
+                  ₹{settings?.gold_rate_22k || '7020'}/g
+                </span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('products')}
-                className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-left whitespace-nowrap ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'products'
-                    ? 'bg-[#1A1A1A] text-white shadow-xs'
+                    ? 'bg-[#1A1A1A] text-white shadow-2xs'
                     : 'text-stone-700 hover:bg-stone-100'
                 }`}
               >
-                <Gem className="w-4 h-4 text-amber-700" />
-                <span>Jewellery Inventory</span>
-                {products.length > 0 && (
-                  <span className="ml-auto text-[10px] bg-stone-200 text-stone-800 px-1.5 py-0.5 rounded-full">
-                    {products.length}
-                  </span>
-                )}
+                <div className="flex items-center gap-3">
+                  <Gem className="w-4 h-4 text-[#C5A869]" />
+                  <span>Jewellery Catalog ({products.length})</span>
+                </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('categories')}
-                className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-left whitespace-nowrap ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'categories'
-                    ? 'bg-[#1A1A1A] text-white shadow-xs'
+                    ? 'bg-[#1A1A1A] text-white shadow-2xs'
                     : 'text-stone-700 hover:bg-stone-100'
                 }`}
               >
-                <Layers className="w-4 h-4 text-amber-600" />
-                <span>Categories (కేటగిరీలు)</span>
-                {adminCategories.length > 0 && (
-                  <span className="ml-auto text-[10px] bg-amber-100 text-amber-900 font-bold px-1.5 py-0.5 rounded-full">
-                    {adminCategories.length}
-                  </span>
-                )}
+                <div className="flex items-center gap-3">
+                  <Layers className="w-4 h-4 text-[#C5A869]" />
+                  <span>Categories ({adminCategories.length})</span>
+                </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('enquiries')}
-                className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-left whitespace-nowrap ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'enquiries'
-                    ? 'bg-[#1A1A1A] text-white shadow-xs'
+                    ? 'bg-[#1A1A1A] text-white shadow-2xs'
                     : 'text-stone-700 hover:bg-stone-100'
                 }`}
               >
-                <MessageSquare className="w-4 h-4 text-blue-600" />
-                <span>Customer Inquiries</span>
+                <div className="flex items-center gap-3">
+                  <MessageSquare className="w-4 h-4 text-[#C5A869]" />
+                  <span>Customer Inquiries</span>
+                </div>
                 {enquiries.filter((e) => e.status === 'New').length > 0 && (
-                  <span className="ml-auto text-[10px] bg-rose-600 text-white font-extrabold px-1.5 py-0.5 rounded-full">
+                  <span className="bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">
                     {enquiries.filter((e) => e.status === 'New').length}
                   </span>
                 )}
@@ -864,70 +921,69 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveTab('settings')}
-                className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-left whitespace-nowrap ${
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'settings'
-                    ? 'bg-[#1A1A1A] text-white shadow-xs'
+                    ? 'bg-[#1A1A1A] text-white shadow-2xs'
                     : 'text-stone-700 hover:bg-stone-100'
                 }`}
               >
-                <Settings className="w-4 h-4 text-stone-500" />
+                <Settings className="w-4 h-4 text-[#C5A869]" />
                 <span>Showroom Profile</span>
               </button>
+
+              {/* Quick Price Sync Action in Sidebar */}
+              <div className="pt-4 border-t border-stone-200 mt-4">
+                <button
+                  type="button"
+                  disabled={isRecalculatingAll}
+                  onClick={handleRecalculateAllPricesClick}
+                  className="w-full flex items-center justify-center gap-2 p-2.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-xl text-xs font-bold text-amber-950 transition-all cursor-pointer shadow-2xs disabled:opacity-60"
+                  title="Recalculate all product prices with today's live rates"
+                >
+                  <Zap className={`w-4 h-4 text-[#8C6D23] ${isRecalculatingAll ? 'animate-spin' : ''}`} />
+                  <span>{isRecalculatingAll ? 'Calculating...' : 'Recalculate All Prices'}</span>
+                </button>
+              </div>
             </div>
 
-            {/* Content Area */}
+            {/* Tab Content Area */}
             <div className="flex-1 p-4 sm:p-6 overflow-y-auto">
-              {/* TAB 1: DASHBOARD */}
+              {/* TAB 1: DASHBOARD OVERVIEW */}
               {activeTab === 'dashboard' && (
                 <div className="space-y-6">
-                  <div>
-                    <h3 className="font-serif-luxury text-xl font-bold text-stone-900">
-                      Showroom Analytics & Quick Controls
-                    </h3>
-                    <p className="text-xs text-stone-500">
-                      Live status of Proddatur jewellery catalog and customer leads.
-                    </p>
-                  </div>
-
-                  {/* 4 Stat Cards */}
+                  {/* Top Stats Cards */}
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="bg-white p-4 rounded-xl border border-stone-200 shadow-2xs">
                       <div className="flex items-center justify-between text-stone-500 text-xs font-semibold mb-1">
-                        <span>Total Catalog Items</span>
+                        <span>Total Jewellery Items</span>
                         <Gem className="w-4 h-4 text-[#C5A869]" />
                       </div>
                       <div className="text-2xl font-extrabold text-stone-900">
-                        {stats?.total_products || products.length}
+                        {stats?.totalProducts || products.length}
                       </div>
-                      <span className="text-[10px] text-stone-400">
-                        Gold: {stats?.gold_products || products.filter((p) => p.metal === 'Gold').length} • Silver: {stats?.silver_products || products.filter((p) => p.metal === 'Silver').length}
-                      </span>
+                      <span className="text-[10px] text-stone-500">Live in local SQLite database</span>
                     </div>
 
                     <div className="bg-white p-4 rounded-xl border border-stone-200 shadow-2xs">
                       <div className="flex items-center justify-between text-stone-500 text-xs font-semibold mb-1">
-                        <span>Today's 22K Gold</span>
-                        <Coins className="w-4 h-4 text-amber-500" />
+                        <span>Gold Catalog</span>
+                        <Coins className="w-4 h-4 text-amber-600" />
                       </div>
                       <div className="text-2xl font-extrabold text-amber-800">
-                        ₹{Number(rate22K).toLocaleString('en-IN')}/g
+                        {stats?.goldCount || products.filter((p) => p.metal.toLowerCase() === 'gold').length}
                       </div>
-                      <span className="text-[10px] text-stone-400">
-                        8g Pavan: ₹{(Number(rate22K) * 8).toLocaleString('en-IN')}
-                      </span>
+                      <span className="text-[10px] text-amber-700 font-semibold">22K 916 & 24K Coins</span>
                     </div>
 
                     <div className="bg-white p-4 rounded-xl border border-stone-200 shadow-2xs">
                       <div className="flex items-center justify-between text-stone-500 text-xs font-semibold mb-1">
-                        <span>92.5 Silver Rate</span>
+                        <span>Silver Catalog</span>
                         <Sparkles className="w-4 h-4 text-slate-500" />
                       </div>
                       <div className="text-2xl font-extrabold text-slate-800">
-                        ₹{Number(rateSilver).toLocaleString('en-IN')}/g
+                        {stats?.silverCount || products.filter((p) => p.metal.toLowerCase() === 'silver').length}
                       </div>
-                      <span className="text-[10px] text-stone-400">
-                        1 Kg Bar: ₹{(Number(rateSilver) * 1000).toLocaleString('en-IN')}
-                      </span>
+                      <span className="text-[10px] text-slate-600 font-semibold">92.5 Sterling Silver</span>
                     </div>
 
                     <div className="bg-white p-4 rounded-xl border border-stone-200 shadow-2xs">
@@ -936,11 +992,43 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                         <MessageSquare className="w-4 h-4 text-blue-600" />
                       </div>
                       <div className="text-2xl font-extrabold text-blue-800">
-                        {stats?.total_enquiries || enquiries.length}
+                        {stats?.totalEnquiries || enquiries.length}
                       </div>
                       <span className="text-[10px] text-rose-600 font-bold">
-                        {stats?.new_enquiries || enquiries.filter((e) => e.status === 'New').length} pending follow-ups
+                        {stats?.newEnquiries || enquiries.filter((e) => e.status === 'New').length} pending leads
                       </span>
+                    </div>
+                  </div>
+
+                  {/* Real-time Pricing Guarantee Card */}
+                  <div className="bg-gradient-to-br from-amber-900 to-stone-900 text-white rounded-2xl p-6 shadow-md border border-amber-700/50">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="bg-[#C5A869] text-stone-950 text-[10px] font-extrabold px-2 py-0.5 rounded">
+                            LIVE REAL-TIME ENGINE
+                          </span>
+                          <span className="text-xs text-amber-200 font-semibold">
+                            Auto-calculates for all website visitors immediately
+                          </span>
+                        </div>
+                        <h3 className="font-serif-luxury text-xl font-bold text-amber-100">
+                          Formula: Total = (Weight × Gram Rate) + Wastage (VA) + Labour Cost
+                        </h3>
+                        <p className="text-xs text-amber-200/80 max-w-2xl">
+                          When you adjust today's market rates or edit product wastage / labour charges, every product price auto-calculates and pushes dynamically across the website.
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        disabled={isRecalculatingAll}
+                        onClick={handleRecalculateAllPricesClick}
+                        className="px-4 py-2.5 bg-[#C5A869] hover:bg-[#B38F4D] text-stone-950 font-bold text-xs rounded-xl shadow-md flex items-center gap-2 cursor-pointer shrink-0 transition-all"
+                      >
+                        <Zap className="w-4 h-4" />
+                        <span>{isRecalculatingAll ? 'Syncing...' : 'Force Sync All Prices'}</span>
+                      </button>
                     </div>
                   </div>
 
@@ -959,21 +1047,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                       </div>
                       <div>
                         <span className="font-bold text-xs text-stone-900 block">Add Jewellery Item</span>
-                        <span className="text-[11px] text-stone-500">Add 22K Gold or 92.5 Silver piece</span>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('categories')}
-                      className="p-4 bg-white rounded-xl border border-stone-200 shadow-2xs hover:border-[#C5A869] transition-all text-left flex items-start gap-3 cursor-pointer group"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-amber-100/60 text-amber-900 flex items-center justify-center group-hover:scale-105 transition-transform">
-                        <Layers className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <span className="font-bold text-xs text-stone-900 block">Manage Categories</span>
-                        <span className="text-[11px] text-stone-500">Create & organize custom collections</span>
+                        <span className="text-[11px] text-stone-500">With Wastage & Labour parameters</span>
                       </div>
                     </button>
 
@@ -987,7 +1061,21 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                       </div>
                       <div>
                         <span className="font-bold text-xs text-stone-900 block">Update Today's Rates</span>
-                        <span className="text-[11px] text-stone-500">24K, 22K gold and silver per gram rates</span>
+                        <span className="text-[11px] text-stone-500">Auto-updates all catalog prices</span>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('categories')}
+                      className="p-4 bg-white rounded-xl border border-stone-200 shadow-2xs hover:border-[#C5A869] transition-all text-left flex items-start gap-3 cursor-pointer group"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-amber-100/60 text-amber-900 flex items-center justify-center group-hover:scale-105 transition-transform">
+                        <Layers className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="font-bold text-xs text-stone-900 block">Manage Categories</span>
+                        <span className="text-[11px] text-stone-500">Gold & Silver collections</span>
                       </div>
                     </button>
 
@@ -1001,7 +1089,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                       </div>
                       <div>
                         <span className="font-bold text-xs text-stone-900 block">Customer Inquiries</span>
-                        <span className="text-[11px] text-stone-500">View quotation & WhatsApp leads</span>
+                        <span className="text-[11px] text-stone-500">View WhatsApp & custom order leads</span>
                       </div>
                     </button>
                   </div>
@@ -1010,13 +1098,24 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
 
               {/* TAB 2: DAILY RATES EDITOR */}
               {activeTab === 'rates' && (
-                <div className="max-w-2xl bg-white rounded-2xl p-6 border border-stone-200 shadow-2xs space-y-6">
+                <div className="max-w-3xl bg-white rounded-2xl p-6 border border-stone-200 shadow-2xs space-y-6">
                   <div>
-                    <h3 className="font-serif-luxury text-xl font-bold text-stone-900">
-                      Update Today's Gold & Silver Rates (నేటి ధరలు)
-                    </h3>
-                    <p className="text-xs text-stone-500">
-                      Changes made here instantly update the live scrolling ticker and rate cards across the entire showroom app.
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-serif-luxury text-xl font-bold text-stone-900">
+                        Update Today's Gold & Silver Rates (నేటి ధరలు)
+                      </h3>
+                      <button
+                        type="button"
+                        disabled={isRecalculatingAll}
+                        onClick={handleRecalculateAllPricesClick}
+                        className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg text-xs font-bold text-amber-950 flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Zap className="w-3.5 h-3.5 text-[#8C6D23]" />
+                        <span>Recalculate Catalog</span>
+                      </button>
+                    </div>
+                    <p className="text-xs text-stone-500 mt-1">
+                      Updating these rates instantly updates the scrolling ticker, rate cards, and <strong>automatically recalculates the dynamic selling price of every product</strong> for all active website visitors.
                     </p>
                   </div>
 
@@ -1098,22 +1197,22 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     <button
                       type="submit"
                       disabled={isSavingRates}
-                      className="w-full py-3 bg-[#1A1A1A] hover:bg-stone-800 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                      className="px-6 py-2.5 bg-[#1A1A1A] hover:bg-stone-800 text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-50"
                     >
                       <Save className="w-4 h-4 text-[#C5A869]" />
-                      <span>{isSavingRates ? 'Saving Rates...' : 'Save & Publish Today\'s Rates'}</span>
+                      <span>{isSavingRates ? 'Recalculating All Prices & Saving...' : "Save Today's Rates & Auto-Recalculate Prices"}</span>
                     </button>
                   </form>
                 </div>
               )}
 
-              {/* TAB 3: PRODUCTS INVENTORY */}
+              {/* TAB 3: PRODUCTS & PRICING ENGINE */}
               {activeTab === 'products' && (
                 <div className="space-y-4">
-                  {/* Products Header Toolbar */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-stone-200">
-                    <div className="flex items-center gap-2 flex-1">
-                      <div className="relative flex-1 max-w-sm">
+                  {/* Products Toolbar */}
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-stone-200">
+                    <div className="flex flex-wrap items-center gap-2 flex-1">
+                      <div className="relative flex-1 min-w-[200px] max-w-xs">
                         <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                           type="text"
@@ -1126,10 +1225,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
 
                       <select
                         value={productMetalFilter}
-                        onChange={(e) => {
-                          setProductMetalFilter(e.target.value as any);
-                          setProductCategoryFilter('All');
-                        }}
+                        onChange={(e) => setProductMetalFilter(e.target.value as any)}
                         className="py-1.5 px-3 bg-stone-50 border border-stone-300 rounded-lg text-xs font-semibold"
                       >
                         <option value="All">All Metals</option>
@@ -1140,7 +1236,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                       <select
                         value={productCategoryFilter}
                         onChange={(e) => setProductCategoryFilter(e.target.value)}
-                        className="py-1.5 px-3 bg-stone-50 border border-stone-300 rounded-lg text-xs font-semibold max-w-[170px] truncate"
+                        className="py-1.5 px-3 bg-stone-50 border border-stone-300 rounded-lg text-xs font-semibold max-w-[180px] truncate"
                       >
                         <option value="All">All Categories</option>
                         {adminCategories
@@ -1157,26 +1253,41 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                       </select>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={handleOpenAddProduct}
-                      className="flex items-center gap-1.5 bg-[#1A1A1A] hover:bg-stone-800 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer shrink-0"
-                    >
-                      <Plus className="w-4 h-4 text-[#C5A869]" />
-                      <span>Add Jewellery Item</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={isRecalculatingAll}
+                        onClick={handleRecalculateAllPricesClick}
+                        className="flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-950 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer shrink-0"
+                        title="Recalculate all products with today's live rate, wastage & labour"
+                      >
+                        <Zap className="w-3.5 h-3.5 text-[#8C6D23]" />
+                        <span>{isRecalculatingAll ? 'Syncing...' : 'Sync Prices'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleOpenAddProduct}
+                        className="flex items-center gap-1.5 bg-[#1A1A1A] hover:bg-stone-800 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer shrink-0"
+                      >
+                        <Plus className="w-4 h-4 text-[#C5A869]" />
+                        <span>Add Jewellery Item</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Products Table */}
                   <div className="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-2xs">
-                    <div className="overflow-x-auto max-h-[500px]">
+                    <div className="overflow-x-auto max-h-[520px]">
                       <table className="w-full text-left text-xs">
-                        <thead className="bg-stone-50 text-stone-600 font-bold border-b border-stone-200 sticky top-0">
+                        <thead className="bg-stone-50 text-stone-700 font-bold border-b border-stone-200 sticky top-0 z-10">
                           <tr>
-                            <th className="p-3">Item</th>
+                            <th className="p-3">Item / Image</th>
                             <th className="p-3">Code</th>
-                            <th className="p-3">Category</th>
                             <th className="p-3">Purity & Wt</th>
+                            <th className="p-3">Wastage (VA %)</th>
+                            <th className="p-3">Labour Cost</th>
+                            <th className="p-3">Calculated Price</th>
                             <th className="p-3">Status</th>
                             <th className="p-3 text-right">Actions</th>
                           </tr>
@@ -1184,79 +1295,91 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                         <tbody className="divide-y divide-stone-100">
                           {filteredProducts.length === 0 ? (
                             <tr>
-                              <td colSpan={6} className="p-8 text-center text-stone-400">
+                              <td colSpan={8} className="p-8 text-center text-stone-400">
                                 No items found matching search filters.
                               </td>
                             </tr>
                           ) : (
-                            filteredProducts.map((prod) => (
-                              <tr key={prod.id} className="hover:bg-stone-50/80 transition-colors">
-                                <td className="p-3">
-                                  <div className="flex items-center gap-2.5">
-                                    <img
-                                      src={prod.image_path}
-                                      alt={prod.title}
-                                      className="w-10 h-10 rounded-lg object-contain bg-stone-100 border border-stone-200 p-0.5 shrink-0"
-                                    />
-                                    <div>
-                                      <span className="font-bold text-stone-900 block line-clamp-1">{prod.title}</span>
-                                      {prod.title_te && (
-                                        <span className="text-[11px] text-stone-500 block line-clamp-1">{prod.title_te}</span>
-                                      )}
+                            filteredProducts.map((prod) => {
+                              const breakdown = calculateProductPriceBreakdown(prod, settings);
+                              return (
+                                <tr key={prod.id} className="hover:bg-stone-50/80 transition-colors">
+                                  <td className="p-3">
+                                    <div className="flex items-center gap-2.5">
+                                      <img
+                                        src={prod.image_path}
+                                        alt={prod.title}
+                                        className="w-10 h-10 rounded-lg object-contain bg-stone-100 border border-stone-200 p-0.5 shrink-0"
+                                      />
+                                      <div className="max-w-[200px]">
+                                        <span className="font-bold text-stone-900 block truncate">{prod.title}</span>
+                                        <span className="text-[11px] text-stone-500 block truncate">{prod.category}</span>
+                                      </div>
                                     </div>
-                                  </div>
-                                </td>
-                                <td className="p-3 font-mono font-bold text-stone-800">{prod.code}</td>
-                                <td className="p-3">
-                                  <span
-                                    className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                                      prod.metal === 'Gold'
-                                        ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                                        : 'bg-slate-100 text-slate-800 border border-slate-300'
-                                    }`}
-                                  >
-                                    {prod.category}
-                                  </span>
-                                </td>
-                                <td className="p-3">
-                                  <span className="font-bold text-stone-800 block">{prod.weight}g</span>
-                                  <span className="text-[10px] text-stone-500">{prod.purity}</span>
-                                </td>
-                                <td className="p-3">
-                                  <span
-                                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                      prod.availability === 'In Stock'
-                                        ? 'bg-emerald-100 text-emerald-800'
-                                        : prod.availability === 'Custom Order'
-                                        ? 'bg-amber-100 text-amber-800'
-                                        : 'bg-stone-100 text-stone-600'
-                                    }`}
-                                  >
-                                    {prod.availability}
-                                  </span>
-                                </td>
-                                <td className="p-3 text-right">
-                                  <div className="inline-flex items-center gap-1.5">
-                                    <button
-                                      type="button"
-                                      onClick={() => handleOpenEditProduct(prod)}
-                                      className="p-1.5 text-stone-600 hover:text-stone-950 hover:bg-stone-200 rounded cursor-pointer"
-                                      title="Edit Product"
+                                  </td>
+                                  <td className="p-3 font-mono font-bold text-stone-800">{prod.code}</td>
+                                  <td className="p-3">
+                                    <span className="font-bold text-stone-900 block">{prod.weight}g</span>
+                                    <span className="text-[10px] text-stone-500">{prod.purity}</span>
+                                  </td>
+                                  <td className="p-3">
+                                    <span className="font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                      {prod.wastage_percent !== undefined ? prod.wastage_percent : (prod.metal === 'Gold' ? 10 : 8)}%
+                                    </span>
+                                    <span className="text-[10px] text-stone-400 block mt-0.5">
+                                      +₹{breakdown.wastageAmount.toLocaleString('en-IN')}
+                                    </span>
+                                  </td>
+                                  <td className="p-3">
+                                    <span className="font-bold text-stone-800 bg-stone-100 px-2 py-0.5 rounded border border-stone-200">
+                                      ₹{(prod.labour_cost !== undefined ? prod.labour_cost : (prod.metal === 'Gold' ? 2500 : 1200)).toLocaleString('en-IN')}
+                                    </span>
+                                  </td>
+                                  <td className="p-3">
+                                    <span className="font-extrabold text-stone-950 block text-sm">
+                                      ₹{breakdown.totalPrice.toLocaleString('en-IN')}
+                                    </span>
+                                    <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-0.5">
+                                      <CheckCircle2 className="w-3 h-3" />
+                                      Auto-synced
+                                    </span>
+                                  </td>
+                                  <td className="p-3">
+                                    <span
+                                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                        prod.availability === 'In Stock'
+                                          ? 'bg-emerald-100 text-emerald-800'
+                                          : prod.availability === 'Custom Order'
+                                          ? 'bg-amber-100 text-amber-800'
+                                          : 'bg-stone-100 text-stone-600'
+                                      }`}
                                     >
-                                      <Edit2 className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleDeleteProduct(prod.id, prod.code)}
-                                      className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded cursor-pointer"
-                                      title="Delete Product"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))
+                                      {prod.availability}
+                                    </span>
+                                  </td>
+                                  <td className="p-3 text-right">
+                                    <div className="inline-flex items-center gap-1.5">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleOpenEditProduct(prod)}
+                                        className="p-1.5 text-stone-600 hover:text-stone-950 hover:bg-stone-200 rounded cursor-pointer"
+                                        title="Edit Product"
+                                      >
+                                        <Edit2 className="w-3.5 h-3.5" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteProduct(prod.id, prod.code)}
+                                        className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded cursor-pointer"
+                                        title="Delete Product"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })
                           )}
                         </tbody>
                       </table>
@@ -1265,7 +1388,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                 </div>
               )}
 
-              {/* TAB 3.5: CATEGORIES (కేటగిరీలు) */}
+              {/* TAB 4: CATEGORIES */}
               {activeTab === 'categories' && (
                 <div className="space-y-4">
                   {/* Category Toolbar */}
@@ -1298,14 +1421,14 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                         type="button"
                         onClick={loadCategoriesList}
                         title="Reload Categories"
-                        className="p-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg transition-colors cursor-pointer"
+                        className="p-2 text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors cursor-pointer"
                       >
                         <RefreshCw className="w-4 h-4" />
                       </button>
 
                       <button
                         type="button"
-                        onClick={() => handleOpenAddCategory('Gold')}
+                        onClick={() => handleOpenAddCategory(categoryMetalFilter === 'Silver' ? 'Silver' : 'Gold')}
                         className="flex items-center gap-1.5 bg-[#1A1A1A] hover:bg-stone-800 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer shrink-0"
                       >
                         <Plus className="w-4 h-4 text-[#C5A869]" />
@@ -1320,49 +1443,39 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                       <table className="w-full text-left text-xs">
                         <thead className="bg-stone-50 text-stone-600 font-bold border-b border-stone-200 sticky top-0">
                           <tr>
-                            <th className="p-3">Category Name</th>
-                            <th className="p-3">Metal</th>
-                            <th className="p-3">Slug / URL Identifier</th>
-                            <th className="p-3">Display Order</th>
-                            <th className="p-3">Catalog Items</th>
+                            <th className="p-3">Order</th>
+                            <th className="p-3">Category Name (English)</th>
+                            <th className="p-3">తెలుగు పేరు (Telugu)</th>
+                            <th className="p-3">Metal Type</th>
+                            <th className="p-3">Slug (URL)</th>
+                            <th className="p-3">Items Linked</th>
                             <th className="p-3 text-right">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-stone-100">
-                          {filteredCategories.length === 0 ? (
+                          {filteredAdminCategories.length === 0 ? (
                             <tr>
-                              <td colSpan={6} className="p-8 text-center text-stone-400">
-                                <div className="space-y-2">
-                                  <p>No categories found matching current filters.</p>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleOpenAddCategory('Gold')}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 text-amber-900 rounded-lg text-xs font-bold hover:bg-amber-200 cursor-pointer"
-                                  >
-                                    <Plus className="w-3.5 h-3.5" />
-                                    <span>Create Custom Category</span>
-                                  </button>
-                                </div>
+                              <td colSpan={7} className="p-8 text-center text-stone-400">
+                                No categories found.
                               </td>
                             </tr>
                           ) : (
-                            filteredCategories.map((cat) => {
-                              const prodCount = products.filter(
-                                (p) => p.category === cat.name || (p.metal === cat.metal && p.category?.toLowerCase() === cat.name.toLowerCase())
-                              ).length;
+                            filteredAdminCategories.map((cat) => {
+                              const linkedCount = (cat as any).product_count !== undefined
+                                ? (cat as any).product_count
+                                : products.filter((p) => p.category === cat.name || p.category_te === cat.name_te).length;
                               return (
                                 <tr key={cat.id} className="hover:bg-stone-50/80 transition-colors">
+                                  <td className="p-3 font-mono font-bold text-stone-500">#{cat.sort_order || cat.id}</td>
                                   <td className="p-3">
-                                    <div>
-                                      <span className="font-bold text-stone-900 text-xs block">{cat.name}</span>
-                                      {cat.name_te && (
-                                        <span className="text-[11px] text-amber-800 font-medium block">{cat.name_te}</span>
-                                      )}
-                                    </div>
+                                    <span className="font-bold text-stone-900 block">{cat.name}</span>
+                                  </td>
+                                  <td className="p-3">
+                                    <span className="text-stone-700 font-medium">{cat.name_te || '—'}</span>
                                   </td>
                                   <td className="p-3">
                                     <span
-                                      className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                      className={`px-2.5 py-0.5 rounded text-[10px] font-bold ${
                                         cat.metal === 'Gold'
                                           ? 'bg-amber-100 text-amber-900 border border-amber-300'
                                           : 'bg-slate-100 text-slate-800 border border-slate-300'
@@ -1371,17 +1484,10 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                                       {cat.metal}
                                     </span>
                                   </td>
-                                  <td className="p-3 font-mono text-[11px] text-stone-600">
-                                    <span className="bg-stone-100 px-2 py-0.5 rounded text-stone-700 border border-stone-200">
-                                      {cat.slug}
-                                    </span>
-                                  </td>
+                                  <td className="p-3 font-mono text-[11px] text-stone-500">{cat.slug}</td>
                                   <td className="p-3">
-                                    <span className="text-xs font-bold text-stone-700">#{cat.sort_order}</span>
-                                  </td>
-                                  <td className="p-3">
-                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-stone-100 text-stone-700">
-                                      {cat.product_count !== undefined ? cat.product_count : prodCount} items
+                                    <span className="font-bold text-stone-800 bg-stone-100 px-2 py-0.5 rounded text-[10px]">
+                                      {linkedCount} items
                                     </span>
                                   </td>
                                   <td className="p-3 text-right">
@@ -1415,139 +1521,127 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                 </div>
               )}
 
-              {/* TAB 4: ENQUIRIES & LEADS */}
+              {/* TAB 5: ENQUIRIES */}
               {activeTab === 'enquiries' && (
                 <div className="space-y-4">
-                  {/* Filter Toolbar */}
                   <div className="flex items-center justify-between bg-white p-3.5 rounded-xl border border-stone-200">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-stone-700">Status Filter:</span>
-                      {['All', 'New', 'Contacted', 'Completed', 'Cancelled'].map((status) => (
+                      <span className="text-xs font-bold text-stone-700">Filter Status:</span>
+                      {['All', 'New', 'Contacted', 'Closed'].map((st) => (
                         <button
-                          key={status}
+                          key={st}
                           type="button"
-                          onClick={() => setEnquiryFilter(status)}
-                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                            enquiryFilter === status
+                          onClick={() => setEnquiryFilter(st)}
+                          className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                            enquiryFilter === st
                               ? 'bg-[#1A1A1A] text-white'
-                              : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+                              : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                           }`}
                         >
-                          {status}
+                          {st}
                         </button>
                       ))}
                     </div>
                     <span className="text-xs text-stone-500 font-medium">
-                      Showing {filteredEnquiries.length} leads
+                      Showing {filteredEnquiries.length} of {enquiries.length} leads
                     </span>
                   </div>
 
-                  {/* Enquiries Cards List */}
                   <div className="space-y-3">
                     {filteredEnquiries.length === 0 ? (
-                      <div className="bg-white p-8 rounded-xl border border-stone-200 text-center text-stone-400 text-xs">
-                        No customer inquiries found in this category.
+                      <div className="p-12 text-center bg-white rounded-xl border border-stone-200 text-stone-400">
+                        No customer inquiries found for this filter.
                       </div>
                     ) : (
                       filteredEnquiries.map((enq) => (
                         <div
                           key={enq.id}
-                          className="bg-white rounded-xl p-4 border border-stone-200 shadow-2xs space-y-3"
+                          className="bg-white p-4 rounded-xl border border-stone-200 shadow-2xs space-y-3"
                         >
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-100 pb-2">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-100 pb-2.5">
                             <div>
                               <div className="flex items-center gap-2">
                                 <span className="font-bold text-sm text-stone-900">{enq.name}</span>
                                 <span
-                                  className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                                  className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${
                                     enq.status === 'New'
                                       ? 'bg-rose-100 text-rose-800'
                                       : enq.status === 'Contacted'
                                       ? 'bg-amber-100 text-amber-800'
-                                      : enq.status === 'Completed'
-                                      ? 'bg-emerald-100 text-emerald-800'
                                       : 'bg-stone-100 text-stone-600'
                                   }`}
                                 >
                                   {enq.status}
                                 </span>
                               </div>
-                              <div className="flex items-center gap-3 text-xs text-stone-500 mt-0.5">
-                                <a
-                                  href={`tel:${enq.phone}`}
-                                  className="text-stone-800 font-bold hover:underline flex items-center gap-1"
-                                >
-                                  <Phone className="w-3 h-3 text-emerald-600" />
-                                  <span>{enq.phone}</span>
-                                </a>
-                                {enq.email && <span>• {enq.email}</span>}
-                                <span>• {enq.created_at}</span>
-                              </div>
+                              <span className="text-[11px] text-stone-400">{enq.created_at || 'Recent enquiry'}</span>
                             </div>
 
-                            {/* Direct WhatsApp Quick Response Button */}
                             <div className="flex items-center gap-2">
                               <a
-                                href={`https://wa.me/${enq.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-                                  `నమస్కారం ${enq.name} గారు, వడ్డీ జ్యువెలరీ (ప్రొద్దుటూరు) నుండి మాట్లాడుతున్నాము. మీరు వెబ్‌సైట్‌లో ${enq.product_title || 'ఆభరణం'} గురించి అడిగిన సమాచారం ఇక్కడ అందిస్తున్నాము.`
-                                )}`}
+                                href={`tel:${enq.phone}`}
+                                className="flex items-center gap-1 px-2.5 py-1 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-lg text-xs font-semibold transition-colors"
+                              >
+                                <Phone className="w-3 h-3 text-stone-600" />
+                                <span>{enq.phone}</span>
+                              </a>
+                              <a
+                                href={`https://wa.me/${enq.phone.replace(/[^0-9]/g, '')}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold cursor-pointer"
+                                className="flex items-center gap-1 px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg text-xs font-semibold transition-colors"
                               >
-                                <MessageCircle className="w-3.5 h-3.5" />
-                                <span>Reply on WhatsApp</span>
+                                <MessageCircle className="w-3 h-3 fill-current text-emerald-600" />
+                                <span>WhatsApp</span>
                               </a>
-
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteEnquiry(enq.id)}
-                                className="p-1.5 text-stone-400 hover:text-rose-600 rounded cursor-pointer"
-                                title="Delete enquiry"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
                             </div>
                           </div>
 
-                          {/* Product Context Chip */}
-                          {enq.product_code && (
-                            <div className="bg-stone-50 p-2.5 rounded-lg border border-stone-200 text-xs flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <span className="font-mono font-bold text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded">
+                          {enq.product_title && (
+                            <div className="bg-stone-50 p-2.5 rounded-lg border border-stone-200 text-xs flex items-center gap-2">
+                              <Gem className="w-3.5 h-3.5 text-[#C5A869] shrink-0" />
+                              <span className="text-stone-500">Item Inquired:</span>
+                              <strong className="text-stone-900">{enq.product_title}</strong>
+                              {enq.product_code && (
+                                <span className="font-mono bg-stone-200 text-stone-800 px-1 rounded text-[10px]">
                                   {enq.product_code}
                                 </span>
-                                <span className="font-semibold text-stone-800">{enq.product_title}</span>
-                              </div>
+                              )}
                             </div>
                           )}
 
-                          {/* Inquiry Message */}
                           {enq.message && (
-                            <p className="text-xs text-stone-700 bg-stone-50/60 p-2.5 rounded-lg border border-stone-100 italic">
+                            <p className="text-xs text-stone-700 bg-stone-50/50 p-2.5 rounded-lg border border-stone-100">
                               "{enq.message}"
                             </p>
                           )}
 
-                          {/* Status and Notes Update */}
-                          <div className="flex flex-wrap items-center gap-3 pt-1">
-                            <span className="text-xs font-bold text-stone-600">Update Status:</span>
+                          <div className="flex items-center justify-between pt-1">
                             <div className="flex items-center gap-1.5">
-                              {['New', 'Contacted', 'Completed', 'Cancelled'].map((st) => (
+                              <span className="text-[11px] font-semibold text-stone-500">Mark as:</span>
+                              {['New', 'Contacted', 'Closed'].map((statusOption) => (
                                 <button
-                                  key={st}
+                                  key={statusOption}
                                   type="button"
-                                  onClick={() => handleUpdateEnquiryStatus(enq.id, st)}
-                                  className={`px-2.5 py-1 rounded text-[11px] font-semibold cursor-pointer ${
-                                    enq.status === st
-                                      ? 'bg-[#1A1A1A] text-white'
-                                      : 'bg-stone-100 hover:bg-stone-200 text-stone-700'
+                                  onClick={() => handleUpdateEnquiryStatus(enq.id, statusOption, enq.notes)}
+                                  className={`px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer transition-colors ${
+                                    enq.status === statusOption
+                                      ? 'bg-stone-800 text-white'
+                                      : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                                   }`}
                                 >
-                                  {st}
+                                  {statusOption}
                                 </button>
                               ))}
                             </div>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteEnquiry(enq.id)}
+                              className="text-[11px] text-rose-600 hover:text-rose-800 font-semibold cursor-pointer"
+                            >
+                              Delete
+                            </button>
                           </div>
                         </div>
                       ))
@@ -1556,15 +1650,15 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                 </div>
               )}
 
-              {/* TAB 5: SHOWROOM SETTINGS */}
+              {/* TAB 6: SHOWROOM SETTINGS */}
               {activeTab === 'settings' && (
-                <div className="max-w-3xl bg-white rounded-2xl p-6 border border-stone-200 shadow-2xs space-y-6">
+                <div className="max-w-2xl bg-white rounded-2xl p-6 border border-stone-200 shadow-2xs space-y-6">
                   <div>
                     <h3 className="font-serif-luxury text-xl font-bold text-stone-900">
                       Showroom Profile & Contact Settings
                     </h3>
                     <p className="text-xs text-stone-500">
-                      Configure store address, contact numbers, hours, and Google Maps direction links.
+                      Update your showroom address in Proddatur, WhatsApp contact, operating hours, and tagline.
                     </p>
                   </div>
 
@@ -1577,36 +1671,15 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                           required
                           value={shopName}
                           onChange={(e) => setShopName(e.target.value)}
-                          className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs font-bold"
+                          className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-stone-700 mb-1">Showroom Name (Telugu - తెలుగు)</label>
+                        <label className="block text-xs font-bold text-stone-700 mb-1">షోరూమ్ పేరు (తెలుగు)</label>
                         <input
                           type="text"
                           value={shopNameTe}
                           onChange={(e) => setShopNameTe(e.target.value)}
-                          className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs font-bold"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-stone-700 mb-1">Tagline (English)</label>
-                        <input
-                          type="text"
-                          value={shopTagline}
-                          onChange={(e) => setShopTagline(e.target.value)}
-                          className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-stone-700 mb-1">Tagline (Telugu - తెలుగు)</label>
-                        <input
-                          type="text"
-                          value={shopTaglineTe}
-                          onChange={(e) => setShopTaglineTe(e.target.value)}
                           className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
                         />
                       </div>
@@ -1614,29 +1687,32 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold text-stone-700 mb-1">Showroom Phone</label>
+                        <label className="block text-xs font-bold text-stone-700 mb-1">Calling Phone Number</label>
                         <input
                           type="text"
+                          required
                           value={shopPhone}
                           onChange={(e) => setShopPhone(e.target.value)}
-                          className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs font-mono"
+                          className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-stone-700 mb-1">WhatsApp Number</label>
+                        <label className="block text-xs font-bold text-stone-700 mb-1">WhatsApp Business Number</label>
                         <input
                           type="text"
+                          required
                           value={shopWhatsapp}
                           onChange={(e) => setShopWhatsapp(e.target.value)}
-                          className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs font-mono"
+                          className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-stone-700 mb-1">Showroom Street Address</label>
+                      <label className="block text-xs font-bold text-stone-700 mb-1">Address / Street</label>
                       <input
                         type="text"
+                        required
                         value={shopAddress}
                         onChange={(e) => setShopAddress(e.target.value)}
                         className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
@@ -1648,6 +1724,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                         <label className="block text-xs font-bold text-stone-700 mb-1">City, State & Pincode</label>
                         <input
                           type="text"
+                          required
                           value={shopCityPincode}
                           onChange={(e) => setShopCityPincode(e.target.value)}
                           className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
@@ -1657,6 +1734,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                         <label className="block text-xs font-bold text-stone-700 mb-1">Opening Hours</label>
                         <input
                           type="text"
+                          required
                           value={shopHours}
                           onChange={(e) => setShopHours(e.target.value)}
                           className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
@@ -1665,7 +1743,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-stone-700 mb-1">Google Maps Direction URL</label>
+                      <label className="block text-xs font-bold text-stone-700 mb-1">Google Maps Showroom Link</label>
                       <input
                         type="url"
                         value={shopMapsUrl}
@@ -1677,10 +1755,10 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     <button
                       type="submit"
                       disabled={isSavingSettings}
-                      className="w-full py-3 bg-[#1A1A1A] hover:bg-stone-800 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                      className="px-6 py-2.5 bg-[#1A1A1A] hover:bg-stone-800 text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-50"
                     >
                       <Save className="w-4 h-4 text-[#C5A869]" />
-                      <span>{isSavingSettings ? 'Saving...' : 'Save Showroom Settings'}</span>
+                      <span>{isSavingSettings ? 'Saving Settings...' : 'Save Showroom Settings'}</span>
                     </button>
                   </form>
                 </div>
@@ -1689,38 +1767,43 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
           </div>
         )}
 
-        {/* Nested Add / Edit Product Modal */}
+        {/* MODAL: ADD / EDIT PRODUCT WITH WASTAGE & LABOUR PARAMETERS */}
         {isEditingProduct && (
-          <div
-            className="fixed inset-0 z-60 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
-            onClick={() => setIsEditingProduct(false)}
-          >
-            <div
-              className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-stone-300 my-auto space-y-4 max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between border-b border-stone-200 pb-3">
-                <h4 className="font-serif-luxury text-xl font-bold text-stone-900">
-                  {selectedProduct ? `Edit Jewellery (${selectedProduct.code})` : 'Add New Jewellery Item'}
-                </h4>
+          <div className="fixed inset-0 z-60 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+            <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl border border-stone-200 relative my-auto animate-in zoom-in-95 duration-150">
+              <div className="flex items-center justify-between pb-4 border-b border-stone-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-900 flex items-center justify-center font-bold">
+                    <Gem className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-serif-luxury text-lg font-bold text-stone-900">
+                      {selectedProduct ? `Edit Product: ${selectedProduct.code}` : 'Add New Jewellery Item'}
+                    </h3>
+                    <p className="text-[11px] text-stone-500">
+                      Set weight, wastage percentage (VA) & labour costs to auto-calculate dynamic selling price.
+                    </p>
+                  </div>
+                </div>
                 <button
                   type="button"
                   onClick={() => setIsEditingProduct(false)}
-                  className="p-1 text-stone-400 hover:text-stone-700 cursor-pointer"
+                  className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-100 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <form onSubmit={handleSaveProductForm} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <form onSubmit={handleSaveProductForm} className="space-y-4 pt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-stone-700 mb-1">Product Code *</label>
+                    <label className="block text-xs font-bold text-stone-700 mb-1">Item Code *</label>
                     <input
                       type="text"
                       required
                       value={formCode}
-                      onChange={(e) => setFormCode(e.target.value.toUpperCase())}
+                      onChange={(e) => setFormCode(e.target.value)}
+                      placeholder="e.g. VD-G009"
                       className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs font-mono font-bold"
                     />
                   </div>
@@ -1729,64 +1812,68 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     <select
                       value={formMetal}
                       onChange={(e) => {
-                        const newMetal = e.target.value as 'Gold' | 'Silver';
-                        setFormMetal(newMetal);
-                        const matching = adminCategories.filter(
-                          (c) => c.metal.toLowerCase() === newMetal.toLowerCase()
-                        );
-                        if (matching.length > 0) {
-                          setFormCategory(matching[0].name);
-                          setFormCategoryTe(matching[0].name_te || matching[0].name);
-                        } else {
-                          if (newMetal === 'Gold') {
-                            setFormCategory('Gold Harams & Necklaces');
-                            setFormCategoryTe('బంగారు హారాలు & నెక్లెస్‌లు');
-                          } else {
-                            setFormCategory('Silver God Idols');
-                            setFormCategoryTe('వెండి దేవుడి విగ్రహాలు');
-                          }
-                        }
-                        if (!selectedProduct) {
-                          setFormCode(`VD-${newMetal === 'Gold' ? 'G' : 'S'}${Math.floor(100 + Math.random() * 900)}`);
-                        }
-                        if (newMetal === 'Gold') {
-                          if (formPurity.includes('Silver')) {
-                            setFormPurity('22K BIS 916');
+                        const metal = e.target.value as 'Gold' | 'Silver';
+                        setFormMetal(metal);
+                        if (metal === 'Silver') {
+                          setFormPurity('92.5 Sterling Silver');
+                          setFormWastagePercent(8.0);
+                          setFormLabourCost(1200);
+                          const silverCats = adminCategories.filter((c) => c.metal.toLowerCase() === 'silver');
+                          if (silverCats.length > 0) {
+                            setFormCategory(silverCats[0].name);
+                            setFormCategoryTe(silverCats[0].name_te || '');
                           }
                         } else {
-                          if (formPurity.includes('22K') || formPurity.includes('24K') || formPurity.includes('Gold')) {
-                            setFormPurity('92.5 Sterling Silver');
+                          setFormPurity('22K BIS 916');
+                          setFormWastagePercent(10.0);
+                          setFormLabourCost(2500);
+                          const goldCats = adminCategories.filter((c) => c.metal.toLowerCase() === 'gold');
+                          if (goldCats.length > 0) {
+                            setFormCategory(goldCats[0].name);
+                            setFormCategoryTe(goldCats[0].name_te || '');
                           }
                         }
                       }}
                       className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs font-bold"
                     >
-                      <option value="Gold">22K / 24K Gold (బంగారం)</option>
-                      <option value="Silver">92.5 Sterling Silver (వెండి)</option>
+                      <option value="Gold">Gold (బంగారం)</option>
+                      <option value="Silver">Silver (వెండి)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-stone-700 mb-1">Availability</label>
+                    <select
+                      value={formAvailability}
+                      onChange={(e) => setFormAvailability(e.target.value as any)}
+                      className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs font-semibold"
+                    >
+                      <option value="In Stock">In Stock (లభించును)</option>
+                      <option value="Custom Order">Custom Order (ఆర్డర్ పై చేయబడును)</option>
+                      <option value="Out of Stock">Out of Stock</option>
                     </select>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-stone-700 mb-1">Title (English) *</label>
+                    <label className="block text-xs font-bold text-stone-700 mb-1">Item Title (English) *</label>
                     <input
                       type="text"
                       required
                       value={formTitle}
                       onChange={(e) => setFormTitle(e.target.value)}
-                      placeholder="e.g. Traditional 22K Lakshmi Kasu Haram"
-                      className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs font-semibold"
+                      placeholder="e.g. Traditional Temple Lakshmi Kasu Haram"
+                      className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-stone-700 mb-1">Title (Telugu - తెలుగు)</label>
+                    <label className="block text-xs font-bold text-stone-700 mb-1">ఆభరణం పేరు (తెలుగు)</label>
                     <input
                       type="text"
                       value={formTitleTe}
                       onChange={(e) => setFormTitleTe(e.target.value)}
-                      placeholder="ఉదా: 22 క్యారెట్ల లక్ష్మీ కాసుల హారం"
-                      className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs font-semibold"
+                      placeholder="ఉదా: సాంప్రదాయ ఆలయ లక్ష్మీ కాసుల హారం"
+                      className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
                     />
                   </div>
                 </div>
@@ -1794,7 +1881,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <label className="block text-xs font-bold text-stone-700">Category *</label>
+                      <label className="text-xs font-bold text-stone-700">Category *</label>
                       <button
                         type="button"
                         onClick={() => handleOpenAddCategory(formMetal)}
@@ -1822,17 +1909,9 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                             {c.name} {c.name_te ? `(${c.name_te})` : ''}
                           </option>
                         ))}
-                      {/* Fallback in case current product category is not in list */}
-                      {formCategory &&
-                        !adminCategories.some(
-                          (c) =>
-                            c.metal.toLowerCase() === formMetal.toLowerCase() &&
-                            c.name === formCategory
-                        ) && (
-                          <option value={formCategory}>{formCategory} (Custom)</option>
-                        )}
                     </select>
                   </div>
+
                   <div>
                     <label className="block text-xs font-bold text-stone-700 mb-1">Purity *</label>
                     <select
@@ -1842,24 +1921,25 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     >
                       {formMetal === 'Gold' ? (
                         <>
-                          <option value="22K BIS 916">22K BIS 916 (Standard Jewellery)</option>
-                          <option value="24K Pure Gold (999)">24K Pure Gold (999.9 Coins)</option>
-                          <option value="18K BIS Gold">18K BIS Hallmarked Gold</option>
+                          <option value="22K BIS 916">22K BIS 916 (Standard Jewellery - ₹{settings?.gold_rate_22k || '7020'}/g)</option>
+                          <option value="24K 999.9">24K Pure Gold (999.9 Coins - ₹{settings?.gold_rate_24k || '7650'}/g)</option>
+                          <option value="18K BIS 750">18K BIS Gold (₹{settings?.gold_rate_18k || '5750'}/g)</option>
                         </>
                       ) : (
                         <>
-                          <option value="92.5 Sterling Silver">92.5 Sterling Silver (Hallmarked)</option>
+                          <option value="92.5 Sterling Silver">92.5 Sterling Silver (₹{settings?.silver_rate || '98'}/g)</option>
                           <option value="99.9 Pure Silver">99.9 Pure Silver (Coins & Pooja)</option>
-                          <option value="90.0 Traditional Silver">90.0 Traditional Silver</option>
                         </>
                       )}
                     </select>
                   </div>
+
                   <div>
                     <label className="block text-xs font-bold text-stone-700 mb-1">Weight (Grams) *</label>
                     <input
                       type="number"
                       step="0.01"
+                      min="0.1"
                       required
                       value={formWeight}
                       onChange={(e) => setFormWeight(parseFloat(e.target.value) || 0)}
@@ -1868,38 +1948,176 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* ========================================================================= */}
+                {/* 2 NEW PARAMETERS: WASTAGE CHARGES (VA %) & LABOUR COST (MAKING CHARGE ₹) */}
+                {/* ========================================================================= */}
+                <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-200 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Calculator className="w-4 h-4 text-amber-800" />
+                    <span className="text-xs font-extrabold text-amber-950 uppercase tracking-wide">
+                      Pricing Parameters: Wastage Charges & Labour Cost
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Parameter 1: Wastage Charges */}
+                    <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-bold text-stone-800">
+                          1. Wastage Charges (తరుగు శాతం / VA %) *
+                        </label>
+                        <span className="text-[11px] font-extrabold text-amber-900">
+                          +₹{livePriceBreakdown.wastageAmount.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="50"
+                          value={formWastagePercent}
+                          onChange={(e) => setFormWastagePercent(parseFloat(e.target.value) || 0)}
+                          placeholder="e.g. 10.0"
+                          className="flex-1 px-3 py-1.5 bg-stone-50 border border-stone-300 rounded-lg text-xs font-bold focus:ring-2 focus:ring-amber-500"
+                        />
+                        <span className="text-xs font-bold text-stone-600">%</span>
+                      </div>
+                      {/* Quick preset buttons */}
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {[6, 8, 10, 12, 14].map((pct) => (
+                          <button
+                            key={pct}
+                            type="button"
+                            onClick={() => setFormWastagePercent(pct)}
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer transition-colors ${
+                              formWastagePercent === pct
+                                ? 'bg-amber-900 text-white'
+                                : 'bg-amber-100 text-amber-900 hover:bg-amber-200'
+                            }`}
+                          >
+                            {pct}%
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Parameter 2: Labour Cost */}
+                    <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-bold text-stone-800">
+                          2. Labour / Making Cost (మజూరీ ఖర్చులు ₹) *
+                        </label>
+                        <span className="text-[11px] font-extrabold text-amber-900">
+                          +₹{livePriceBreakdown.labourCost.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-stone-600">₹</span>
+                        <input
+                          type="number"
+                          step="10"
+                          min="0"
+                          value={formLabourCost}
+                          onChange={(e) => setFormLabourCost(parseFloat(e.target.value) || 0)}
+                          placeholder="e.g. 2500"
+                          className="flex-1 px-3 py-1.5 bg-stone-50 border border-stone-300 rounded-lg text-xs font-bold focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+                      {/* Quick preset buttons */}
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {[650, 1200, 2500, 4500, 6500].map((amt) => (
+                          <button
+                            key={amt}
+                            type="button"
+                            onClick={() => setFormLabourCost(amt)}
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer transition-colors ${
+                              formLabourCost === amt
+                                ? 'bg-amber-900 text-white'
+                                : 'bg-amber-100 text-amber-900 hover:bg-amber-200'
+                            }`}
+                          >
+                            ₹{amt.toLocaleString('en-IN')}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* LIVE AUTO-CALCULATED PRICE PREVIEW BREAKDOWN */}
+                  <div className="bg-stone-900 text-white p-3.5 rounded-xl space-y-2 shadow-inner">
+                    <div className="flex items-center justify-between text-xs text-amber-300 border-b border-stone-800 pb-2">
+                      <span className="font-bold flex items-center gap-1">
+                        <Zap className="w-3.5 h-3.5 text-amber-400" />
+                        Today's Gram Rate: ₹{livePriceBreakdown.ratePerGram.toLocaleString('en-IN')}/g ({livePriceBreakdown.purityBadge})
+                      </span>
+                      <span className="text-[11px] text-stone-400 font-mono">
+                        Base: ₹{livePriceBreakdown.metalBasePrice.toLocaleString('en-IN')} ({formWeight}g)
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
+                      <div className="text-xs text-stone-300 space-y-0.5">
+                        <div className="text-[11px] text-stone-400">
+                          Calculation: Base (₹{livePriceBreakdown.metalBasePrice.toLocaleString('en-IN')}) + Wastage (₹{livePriceBreakdown.wastageAmount.toLocaleString('en-IN')}) + Labour (₹{livePriceBreakdown.labourCost.toLocaleString('en-IN')})
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-[10px] text-amber-300 uppercase tracking-wider block">
+                          Auto-Calculated Selling Price
+                        </span>
+                        <span className="text-xl font-extrabold text-[#E6CA85]">
+                          ₹{livePriceBreakdown.totalPrice.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pricing Visibility Toggle */}
+                  <div className="flex items-center justify-between pt-1">
+                    <label className="flex items-center gap-2 text-xs font-bold text-stone-800 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formShowPrice === 1}
+                        onChange={(e) => setFormShowPrice(e.target.checked ? 1 : 0)}
+                        className="rounded text-[#C5A869] focus:ring-amber-500"
+                      />
+                      <span>Display Estimated Price on Showroom Website & Catalog</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 text-xs font-bold text-stone-800 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formAutoCalculatePrice}
+                        onChange={(e) => setFormAutoCalculatePrice(e.target.checked)}
+                        className="rounded text-[#C5A869] focus:ring-amber-500"
+                      />
+                      <span>Auto-Sync Daily with Market Rates</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-stone-700 mb-1">Size / Dimension</label>
                     <input
                       type="text"
                       value={formSize}
                       onChange={(e) => setFormSize(e.target.value)}
-                      placeholder="e.g. 2.6 Size or 18 Inches"
+                      placeholder="e.g. 2.6 Size or 22 Inches"
                       className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-stone-700 mb-1">Price (₹)</label>
+                    <label className="block text-xs font-bold text-stone-700 mb-1">Description</label>
                     <input
-                      type="number"
-                      value={formPrice}
-                      onChange={(e) => setFormPrice(parseFloat(e.target.value) || 0)}
-                      placeholder="e.g. 115000"
+                      type="text"
+                      value={formDescription}
+                      onChange={(e) => setFormDescription(e.target.value)}
+                      placeholder="e.g. 22K BIS Hallmarked heritage piece"
                       className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 mb-1">Availability</label>
-                    <select
-                      value={formAvailability}
-                      onChange={(e) => setFormAvailability(e.target.value as any)}
-                      className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
-                    >
-                      <option value="In Stock">In Stock</option>
-                      <option value="Custom Order">Custom Order</option>
-                      <option value="Out of Stock">Out of Stock</option>
-                    </select>
                   </div>
                 </div>
 
@@ -1966,7 +2184,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                             Click to Browse or Drag & Drop Jewellery Photo
                           </span>
                           <p className="text-[11px] text-stone-500 mt-0.5">
-                            Supports PNG, JPG, WEBP • Max 12MB • Supports Camera Capture on Mobile
+                            Supports PNG, JPG, WEBP, SVG • Max 12MB • Supports Camera Capture on Mobile
                           </p>
                         </div>
                       </label>
@@ -2045,7 +2263,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                               setFormImagePaths([e.target.value, ...formImagePaths]);
                             }
                           }}
-                          placeholder="https://images.unsplash.com/..."
+                          placeholder="https://..."
                           className="flex-1 px-3 py-1.5 bg-white border border-stone-300 rounded-lg text-xs font-mono"
                         />
                       </div>
@@ -2089,7 +2307,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     className="px-5 py-2 bg-[#1A1A1A] hover:bg-stone-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                   >
                     <Save className="w-4 h-4 text-[#C5A869]" />
-                    <span>{isSavingProduct ? 'Saving...' : 'Save Product'}</span>
+                    <span>{isSavingProduct ? 'Saving...' : 'Save Product & Auto-Calculate Price'}</span>
                   </button>
                 </div>
               </form>
@@ -2097,67 +2315,38 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
           </div>
         )}
 
-        {/* Nested Add / Edit Category Modal */}
+        {/* MODAL: ADD / EDIT CATEGORY */}
         {isEditingCategory && (
-          <div
-            className="fixed inset-0 z-60 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
-            onClick={() => setIsEditingCategory(false)}
-          >
-            <div
-              className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-stone-300 my-auto space-y-4"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between border-b border-stone-200 pb-3">
-                <div>
-                  <h4 className="font-serif-luxury text-xl font-bold text-stone-900">
-                    {selectedCategoryToEdit ? 'Edit Category' : 'Create Custom Category'}
-                  </h4>
-                  <p className="text-xs text-stone-500">
-                    Manage categories for Proddatur gold and silver showcase.
-                  </p>
+          <div className="fixed inset-0 z-60 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+            <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-stone-200 relative my-auto animate-in zoom-in-95 duration-150">
+              <div className="flex items-center justify-between pb-4 border-b border-stone-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-900 flex items-center justify-center font-bold">
+                    <Layers className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-serif-luxury text-lg font-bold text-stone-900">
+                      {selectedCategoryToEdit ? `Edit Category: ${selectedCategoryToEdit.name}` : 'Add New Category'}
+                    </h3>
+                    <p className="text-[11px] text-stone-500">
+                      Create custom categories for Gold & Silver jewellery
+                    </p>
+                  </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsEditingCategory(false)}
-                  className="p-1 text-stone-400 hover:text-stone-700 cursor-pointer"
+                  className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-100 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <form onSubmit={handleSaveCategoryForm} className="space-y-4">
+              <form onSubmit={handleSaveCategoryForm} className="space-y-4 pt-4">
                 <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-1">Metal Showcase Type *</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setCatFormMetal('Gold')}
-                      className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
-                        catFormMetal === 'Gold'
-                          ? 'bg-amber-50 border-amber-400 text-amber-900 ring-2 ring-amber-400/30'
-                          : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
-                      }`}
-                    >
-                      <Coins className="w-4 h-4 text-amber-600" />
-                      <span>22K / 24K Gold</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setCatFormMetal('Silver')}
-                      className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
-                        catFormMetal === 'Silver'
-                          ? 'bg-slate-100 border-slate-400 text-slate-900 ring-2 ring-slate-400/30'
-                          : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
-                      }`}
-                    >
-                      <Sparkles className="w-4 h-4 text-slate-600" />
-                      <span>92.5 Sterling Silver</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-1">Category Name (English) *</label>
+                  <label className="block text-xs font-bold text-stone-700 mb-1">
+                    Category Name (English) *
+                  </label>
                   <input
                     type="text"
                     required
@@ -2165,58 +2354,65 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     onChange={(e) => {
                       setCatFormName(e.target.value);
                       if (!selectedCategoryToEdit) {
-                        setCatFormSlug(
-                          e.target.value
-                            .toLowerCase()
-                            .replace(/[^a-z0-9]+/g, '-')
-                            .replace(/(^-|-$)/g, '')
-                        );
+                        setCatFormSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
                       }
                     }}
-                    placeholder="e.g. Traditional Vaddanams or Antique Jhumkas"
-                    className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs font-bold text-stone-900 focus:bg-white focus:ring-2 focus:ring-[#C5A869]"
+                    placeholder="e.g. Gold Antique Harams & Chokers"
+                    className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-1">Category Name (Telugu - తెలుగు)</label>
+                  <label className="block text-xs font-bold text-stone-700 mb-1">
+                    కేటగిరీ పేరు (తెలుగు)
+                  </label>
                   <input
                     type="text"
                     value={catFormNameTe}
                     onChange={(e) => setCatFormNameTe(e.target.value)}
-                    placeholder="ఉదా: బంగారు వడ్డాణాలు / ఆంటీక్ జుంకీలు"
-                    className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs font-semibold text-stone-900 focus:bg-white focus:ring-2 focus:ring-[#C5A869]"
+                    placeholder="ఉదా: బంగారు యాంటిక్ హారాలు & చోకర్లు"
+                    className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-stone-700 mb-1">Slug / URL Identifier</label>
-                    <input
-                      type="text"
-                      value={catFormSlug}
-                      onChange={(e) =>
-                        setCatFormSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''))
-                      }
-                      placeholder="e.g. traditional-vaddanams"
-                      className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs font-mono font-bold text-stone-800"
-                    />
-                    <span className="text-[10px] text-stone-400 mt-0.5 block">Used for routing & filtering</span>
+                    <label className="block text-xs font-bold text-stone-700 mb-1">Metal Type *</label>
+                    <select
+                      value={catFormMetal}
+                      onChange={(e) => setCatFormMetal(e.target.value as any)}
+                      className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs font-bold"
+                    >
+                      <option value="Gold">Gold (బంగారం)</option>
+                      <option value="Silver">Silver (వెండి)</option>
+                    </select>
                   </div>
-
                   <div>
                     <label className="block text-xs font-bold text-stone-700 mb-1">Display Sort Order</label>
                     <input
                       type="number"
+                      min="1"
                       value={catFormSortOrder}
-                      onChange={(e) => setCatFormSortOrder(parseInt(e.target.value, 10) || 0)}
-                      className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs font-bold text-stone-800"
+                      onChange={(e) => setCatFormSortOrder(parseInt(e.target.value) || 1)}
+                      className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
                     />
-                    <span className="text-[10px] text-stone-400 mt-0.5 block">Lower numbers appear first</span>
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-2 pt-3 border-t border-stone-200">
+                <div>
+                  <label className="block text-xs font-bold text-stone-700 mb-1">
+                    Category Slug (URL Identifier)
+                  </label>
+                  <input
+                    type="text"
+                    value={catFormSlug}
+                    onChange={(e) => setCatFormSlug(e.target.value)}
+                    placeholder="e.g. gold-antique-harams"
+                    className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs font-mono"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-stone-200">
                   <button
                     type="button"
                     onClick={() => setIsEditingCategory(false)}
