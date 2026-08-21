@@ -31,10 +31,17 @@ export const Footer: React.FC<FooterProps> = ({
   const { language, t } = useLanguage();
 
   const phone = settings?.phone || '+91 9650052262';
+  const shopName = language === 'te' ? (settings?.shop_name_te || 'వద్ధి జ్యువెలరీ') : (settings?.shop_name || 'VADDI Jewellery');
+  const shopCity = language === 'te' ? (settings?.city_state_pincode_te || 'ప్రొద్దుటూరు • ఆంధ్రప్రదేశ్') : (settings?.city_state_pincode || 'Proddatur • Andhra Pradesh');
+  const shopFullAddress = language === 'te'
+    ? `${settings?.address_te || 'వి.ఎన్.ఆర్ & బ్రదర్స్, వద్ధి కాంప్లెక్స్, సుందరాచార్యుల వీధి, సర్వకట్ట'}, ${settings?.city_state_pincode_te || 'ప్రొద్దుటూరు 516360'}`
+    : `${settings?.address || 'VNR & brothers, Vaddi Complex, Sundaracharyula St, Sarvakatta'}, ${settings?.city_state_pincode || 'Proddatur, AP 516360'}`;
+  const shopHours = language === 'te' ? (settings?.opening_hours_te || 'ఉదయం 10:00 - రాత్రి 9:30 (అన్ని 7 రోజులు)') : (settings?.opening_hours || '10:00 AM - 9:30 PM (All 7 Days)');
+
   const whatsappUrl = `https://wa.me/${(settings?.whatsapp || '919650052262').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
     language === 'te'
-      ? 'నమస్కారం వద్ధి జ్యువెలరీ, నేను మీ షోరూమ్ కలెక్షన్ గురించి సమాచారం తెలుసుకోవాలనుకుంటున్నాను.'
-      : 'Hello VADDI Jewellery, I would like to inquire about your jewellery showroom collection.'
+      ? `నమస్కారం ${shopName}, నేను మీ షోరూమ్ కలెక్షన్ గురించి సమాచారం తెలుసుకోవాలనుకుంటున్నాను.`
+      : `Hello ${shopName}, I would like to inquire about your jewellery showroom collection.`
   )}`;
 
   return (
@@ -49,18 +56,18 @@ export const Footer: React.FC<FooterProps> = ({
               </div>
               <div>
                 <span className="font-serif-luxury font-bold text-lg text-[#FDFCFB] tracking-wide block">
-                  {language === 'te' ? 'వద్ధి జ్యువెలరీ' : 'VADDI Jewellery'}
+                  {shopName}
                 </span>
                 <span className="text-[10px] text-[#C5A869] font-bold uppercase tracking-widest block">
-                  Proddatur • Andhra Pradesh
+                  {shopCity}
                 </span>
               </div>
             </div>
 
             <p className="text-xs text-stone-400 leading-relaxed font-normal">
               {language === 'te'
-                ? 'ప్రొద్దుటూరులో తరతరాల నమ్మకంతో 100% BIS హాల్మార్క్ బంగారు ఆభరణాలు మరియు 92.5 స్వచ్ఛమైన వెండి వస్తువుల షోరూమ్.'
-                : 'Prestigious heritage jewellery showroom in Proddatur, renowned for 100% BIS Hallmarked gold craftsmanship and 92.5 fine sterling silver articles.'}
+                ? (settings?.tagline_te ? `${settings.tagline_te}. 100% BIS హాల్మార్క్ బంగారం & 92.5 స్వచ్ఛమైన వెండి.` : 'ప్రొద్దుటూరులో తరతరాల నమ్మకంతో 100% BIS హాల్మార్క్ బంగారు ఆభరణాలు మరియు 92.5 స్వచ్ఛమైన వెండి వస్తువుల షోరూమ్.')
+                : (settings?.tagline ? `${settings.tagline}. Authentic 100% BIS Hallmarked Gold & 92.5 Fine Silver.` : 'Prestigious heritage jewellery showroom in Proddatur, renowned for 100% BIS Hallmarked gold craftsmanship and 92.5 fine sterling silver articles.')}
             </p>
 
             <div className="flex items-center gap-2 pt-1 text-[11px] text-amber-300 font-semibold">
@@ -147,12 +154,12 @@ export const Footer: React.FC<FooterProps> = ({
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-[#C5A869] shrink-0 mt-0.5" />
                 <span>
-                  Vaddi Complex, Sundaracharyula St, Sarvakatta, Proddatur, AP 516360
+                  {shopFullAddress}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-[#C5A869] shrink-0" />
-                <span>10:00 AM - 9:30 PM (All 7 Days)</span>
+                <span>{shopHours}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-[#C5A869] shrink-0" />
@@ -219,7 +226,7 @@ export const Footer: React.FC<FooterProps> = ({
         {/* Bottom Bar: Copyright & Accreditation */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-500 text-center sm:text-left">
           <div>
-            © {new Date().getFullYear()} VADDI Jewellery, Proddatur. All rights reserved.
+            © {new Date().getFullYear()} {shopName}. All rights reserved.
           </div>
           <div className="flex items-center gap-4 text-[11px]">
             <span>100% BIS Hallmarked Purity</span>

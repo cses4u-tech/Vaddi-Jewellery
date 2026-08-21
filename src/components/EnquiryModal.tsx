@@ -107,7 +107,11 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
             <div>
               <div className="flex items-center gap-2 text-[#8C6D23] font-bold text-xs uppercase tracking-wider mb-1">
                 <Sparkles className="w-4 h-4" />
-                <span>{language === 'te' ? 'వద్ధి షోరూమ్ కస్టమ్ ఆర్డర్' : 'VADDI Custom Goldsmithing'}</span>
+                <span>
+                  {language === 'te'
+                    ? `${settings?.shop_name_te || 'వద్ధి జ్యువెలరీ'} కస్టమ్ ఆర్డర్`
+                    : `${settings?.shop_name || 'VADDI'} Custom Goldsmithing`}
+                </span>
               </div>
               <h3 className="font-serif-luxury text-2xl font-bold text-stone-950">
                 {t('enquiry_title')}

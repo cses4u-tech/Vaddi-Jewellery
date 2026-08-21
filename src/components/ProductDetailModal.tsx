@@ -57,12 +57,15 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const whatsappNumber = (settings?.whatsapp || '919650052262').replace(/[^0-9]/g, '');
 
   // Calculate dynamic auto-calculated price breakdown
+  const shopName = language === 'te' ? (settings?.shop_name_te || 'వద్ధి జ్యువెలరీ') : (settings?.shop_name || 'VADDI Jewellery');
+  const shopAddressShort = language === 'te' ? (settings?.city_state_pincode_te || 'ప్రొద్దుటూరు') : (settings?.city_state_pincode?.split(',')[0] || 'Proddatur');
+
   const breakdown = calculateProductPriceBreakdown(product, settings);
 
   const whatsappMessage =
     language === 'te'
-      ? `నమస్కారం వద్ధి జ్యువెలరీ, నేను ఈ ఆభరణం గురించి పూర్తి వివరాలు మరియు ప్రస్తుత లైవ్ రేటు ప్రకారం కొటేషన్ కోరుతున్నాను:\n\n💎 ఆభరణం: ${title}\n🏷️ కోడ్: ${product.code}\n⚖️ తూకం: ${product.weight} గ్రాములు\n✨ స్వచ్ఛత: ${product.purity}\n💰 ప్రస్తుత ధర: ₹${breakdown.totalPrice.toLocaleString('en-IN')} (తరుగు: ${breakdown.wastagePercent}%, మజూరీ: ₹${breakdown.labourCost.toLocaleString('en-IN')})\n📂 కేటగిరీ: ${category}\n\nదయచేసి త్వరగా సమాధానం ఇవ్వగలరు.`
-      : `Hello VADDI Jewellery, I would like to enquire about this jewellery piece from your showroom catalog:\n\n💎 Product: ${title}\n🏷️ Code: ${product.code}\n⚖️ Weight: ${product.weight}g\n✨ Purity: ${product.purity}\n💰 Today's Auto Price: ₹${breakdown.totalPrice.toLocaleString('en-IN')} (VA: ${breakdown.wastagePercent}%, Labour: ₹${breakdown.labourCost.toLocaleString('en-IN')})\n📂 Category: ${category}\n\nPlease let me know the showroom availability and purchase details.`;
+      ? `నమస్కారం ${shopName}, నేను ఈ ఆభరణం గురించి పూర్తి వివరాలు మరియు ప్రస్తుత లైవ్ రేటు ప్రకారం కొటేషన్ కోరుతున్నాను:\n\n💎 ఆభరణం: ${title}\n🏷️ కోడ్: ${product.code}\n⚖️ తూకం: ${product.weight} గ్రాములు\n✨ స్వచ్ఛత: ${product.purity}\n💰 ప్రస్తుత ధర: ₹${breakdown.totalPrice.toLocaleString('en-IN')} (తరుగు: ${breakdown.wastagePercent}%, మజూరీ: ₹${breakdown.labourCost.toLocaleString('en-IN')})\n📂 కేటగిరీ: ${category}\n\nదయచేసి త్వరగా సమాధానం ఇవ్వగలరు.`
+      : `Hello ${shopName}, I would like to enquire about this jewellery piece from your showroom catalog:\n\n💎 Product: ${title}\n🏷️ Code: ${product.code}\n⚖️ Weight: ${product.weight}g\n✨ Purity: ${product.purity}\n💰 Today's Auto Price: ₹${breakdown.totalPrice.toLocaleString('en-IN')} (VA: ${breakdown.wastagePercent}%, Labour: ₹${breakdown.labourCost.toLocaleString('en-IN')})\n📂 Category: ${category}\n\nPlease let me know the showroom availability and purchase details.`;
 
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
@@ -354,7 +357,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 }}
                 className="w-full text-center text-xs text-stone-500 hover:text-stone-900 underline transition-colors cursor-pointer py-1"
               >
-                {t('book_visit')} • Sarvakatta, Proddatur
+                {t('book_visit')} • {shopAddressShort}
               </button>
             </div>
           </div>

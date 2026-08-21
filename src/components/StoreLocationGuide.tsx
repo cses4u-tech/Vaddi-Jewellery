@@ -20,12 +20,13 @@ export const StoreLocationGuide: React.FC<StoreLocationGuideProps> = ({ settings
   const { language, t } = useLanguage();
 
   const phone = settings?.phone || '+91 9650052262';
+  const shopName = language === 'te' ? (settings?.shop_name_te || 'వద్ధి జ్యువెలరీ') : (settings?.shop_name || 'VADDI Jewellery');
   const mapsUrl =
     settings?.google_maps_url || 'https://maps.app.goo.gl/LcQVnVkd3HuDWsgi9';
   const whatsappUrl = `https://wa.me/${(settings?.whatsapp || '919650052262').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
     language === 'te'
-      ? 'నమస్కారం వధి జ్యువెలరీ, నేను ప్రొద్దుటూరులోని మీ షోరూమ్‌కు రావడానికి రూట్ వివరాలు తెలుసుకోవాలనుకుంటున్నాను.'
-      : 'Hello VADDI Jewellery, I am planning to visit your showroom in Proddatur and would like directions.'
+      ? `నమస్కారం ${shopName}, నేను మీ షోరూమ్‌కు రావడానికి రూట్ వివరాలు తెలుసుకోవాలనుకుంటున్నాను.`
+      : `Hello ${shopName}, I am planning to visit your showroom and would like directions.`
   )}`;
 
   return (
@@ -54,7 +55,7 @@ export const StoreLocationGuide: React.FC<StoreLocationGuideProps> = ({ settings
                 Heritage Showroom
               </span>
               <h3 className="font-serif-luxury text-2xl sm:text-3xl font-bold text-stone-900">
-                {language === 'te' ? 'వద్ధి జ్యువెలరీ • ప్రొద్దుటూరు' : 'VADDI Jewellery Showroom'}
+                {shopName}
               </h3>
             </div>
 
@@ -68,15 +69,14 @@ export const StoreLocationGuide: React.FC<StoreLocationGuideProps> = ({ settings
                   {t('showroom_address_title')}
                 </span>
                 <p className="font-medium text-stone-800">
-                  {language === 'te' ? 'వి.ఎన్.ఆర్ & బ్రదర్స్, వద్ధి కాంప్లెక్స్' : 'VNR & brothers, Vaddi Complex'}
-                </p>
-                <p className="text-stone-600">
-                  {language === 'te' ? 'సుందరాచార్యుల వీధి, సర్వకట్ట' : 'Sundaracharyula St, Sarvakatta'}
+                  {language === 'te'
+                    ? (settings?.address_te || 'వి.ఎన్.ఆర్ & బ్రదర్స్, వద్ధి కాంప్లెక్స్, సుందరాచార్యుల వీధి, సర్వకట్ట')
+                    : (settings?.address || 'VNR & brothers, Vaddi Complex, Sundaracharyula St, Sarvakatta')}
                 </p>
                 <p className="font-bold text-stone-900">
                   {language === 'te'
-                    ? 'ప్రొద్దుటూరు, వైఎస్ఆర్ కడప జిల్లా, ఆంధ్రప్రదేశ్ 516360, భారతదేశం'
-                    : 'Proddatur, Andhra Pradesh 516360, India'}
+                    ? (settings?.city_state_pincode_te || 'ప్రొద్దుటూరు, వైఎస్ఆర్ కడప జిల్లా, ఆంధ్రప్రదేశ్ 516360, భారతదేశం')
+                    : (settings?.city_state_pincode || 'Proddatur, Andhra Pradesh 516360, India')}
                 </p>
               </div>
             </div>
@@ -92,8 +92,8 @@ export const StoreLocationGuide: React.FC<StoreLocationGuideProps> = ({ settings
                   <span className="font-bold text-stone-900 block">{t('timings_title')}</span>
                   <p className="text-stone-600 leading-snug">
                     {language === 'te'
-                      ? 'సోమవారం - ఆదివారం: ఉదయం 10:00 – రాత్రి 9:30 (7 రోజులు)'
-                      : 'Monday - Sunday: 10:00 AM – 9:30 PM (All 7 Days Open)'}
+                      ? (settings?.opening_hours_te || 'సోమవారం - ఆదివారం: ఉదయం 10:00 – రాత్రి 9:30 (7 రోజులు)')
+                      : (settings?.opening_hours || 'Monday - Sunday: 10:00 AM – 9:30 PM (All 7 Days Open)')}
                   </p>
                 </div>
               </div>

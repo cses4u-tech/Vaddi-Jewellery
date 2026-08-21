@@ -48,6 +48,8 @@ import {
   Check,
   Calculator,
   Zap,
+  Building,
+  Eye,
 } from 'lucide-react';
 
 interface AdminPortalModalProps {
@@ -62,26 +64,26 @@ interface AdminPortalModalProps {
 
 const defaultShowroomSettings: ShowroomSettings = {
   shop_name: 'VADDI Jewellery',
-  shop_name_te: 'వధి జ్యువెలరీ',
+  shop_name_te: 'వద్ధి జ్యువెలరీ',
   tagline: '100% BIS Hallmarked Gold & 92.5 Fine Silver Showroom',
-  tagline_te: '100% BIS హాల్మార్క్ బంగారం & 92.5 స్వచ్ఛమైన వెండి షోరూమ్',
+  tagline_te: 'తరతరాల నమ్మకమైన బంగారు & వెండి షోరూమ్ • ప్రొద్దుటూరు',
   phone: '+91 9650052262',
-  whatsapp: '919650052262',
+  whatsapp: '+919650052262',
   address: 'VNR & brothers, Vaddi Complex, Sundaracharyula St, Sarvakatta',
-  address_te: 'వి.ఎన్.ఆర్ & బ్రదర్స్, వధి కాంప్లెక్స్, సుందరాచార్యుల వీధి, సర్వకట్ట',
+  address_te: 'వి.ఎన్.ఆర్ & బ్రదర్స్, వద్ధి కాంప్లెక్స్, సుందరాచార్యుల వీధి, సర్వకట్ట',
   city_state_pincode: 'Proddatur, Andhra Pradesh 516360, India',
   city_state_pincode_te: 'ప్రొద్దుటూరు, ఆంధ్రప్రదేశ్ 516360, భారతదేశం',
   google_maps_url: 'https://maps.app.goo.gl/LcQVnVkd3HuDWsgi9',
-  opening_hours: '10:00 AM - 9:30 PM (All 7 Days)',
-  opening_hours_te: 'సోమవారం - ఆదివారం: ఉదయం 10:00 - రాత్రి 9:30',
+  opening_hours: '10:00 AM - 9:30 PM (All 7 Days Open)',
+  opening_hours_te: 'సోమవారం - ఆదివారం: ఉదయం 10:00 - రాత్రి 9:30 (7 రోజులు)',
   gold_rate_24k: '7650',
   gold_rate_22k: '7020',
   gold_rate_18k: '5750',
   silver_rate: '98',
-  hero_title: 'Exquisite Heritage Jewellery of Proddatur',
-  hero_title_te: 'ప్రొద్దుటూరు శ్రేష్ఠమైన సంప్రదాయ బంగారు & వెండి ఆభరణాలు',
-  hero_subtitle: 'Generations of Trust, BIS 916 Hallmarked Gold & 92.5 Fine Silver',
-  hero_subtitle_te: 'తరతరాల నమ్మకం, 100% BIS 916 హాల్మార్క్ బంగారం & 92.5 స్వచ్ఛమైన వెండి',
+  hero_title: 'Timeless Gold & Silver Elegance in Proddatur',
+  hero_title_te: 'ప్రొద్దుటూరులో తరతరాల బంగారు, వెండి వైభవం',
+  hero_subtitle: 'Discover authentic 22K BIS Hallmarked gold jewellery, pure 92.5 sterling silver articles, sacred idols, and bespoke heirloom craftsmanship.',
+  hero_subtitle_te: '100% BIS హాల్మార్క్ కలిగిన 22K బంగారు ఆభరణాలు, 92.5 వెండి పూజా సామాగ్రి, దైవ విగ్రహాలు మరియు ప్రత్యేకమైన కస్టమ్ డిజైన్లు.',
 };
 
 export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
@@ -180,9 +182,16 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
   const [shopPhone, setShopPhone] = useState(settings?.phone || defaultShowroomSettings.phone);
   const [shopWhatsapp, setShopWhatsapp] = useState(settings?.whatsapp || defaultShowroomSettings.whatsapp);
   const [shopAddress, setShopAddress] = useState(settings?.address || defaultShowroomSettings.address);
+  const [shopAddressTe, setShopAddressTe] = useState(settings?.address_te || defaultShowroomSettings.address_te || 'వి.ఎన్.ఆర్ & బ్రదర్స్, వద్ధి కాంప్లెక్స్, సుందరాచార్యుల వీధి, సర్వకట్ట');
   const [shopCityPincode, setShopCityPincode] = useState(settings?.city_state_pincode || defaultShowroomSettings.city_state_pincode);
+  const [shopCityPincodeTe, setShopCityPincodeTe] = useState(settings?.city_state_pincode_te || defaultShowroomSettings.city_state_pincode_te || 'ప్రొద్దుటూరు, ఆంధ్రప్రదేశ్ 516360, భారతదేశం');
   const [shopMapsUrl, setShopMapsUrl] = useState(settings?.google_maps_url || defaultShowroomSettings.google_maps_url);
   const [shopHours, setShopHours] = useState(settings?.opening_hours || defaultShowroomSettings.opening_hours);
+  const [shopHoursTe, setShopHoursTe] = useState(settings?.opening_hours_te || defaultShowroomSettings.opening_hours_te || 'సోమవారం - ఆదివారం: ఉదయం 10:00 - రాత్రి 9:30');
+  const [heroTitle, setHeroTitle] = useState(settings?.hero_title || defaultShowroomSettings.hero_title || 'Timeless Gold & Silver Elegance in Proddatur');
+  const [heroTitleTe, setHeroTitleTe] = useState(settings?.hero_title_te || defaultShowroomSettings.hero_title_te || 'ప్రొద్దుటూరులో తరతరాల బంగారు, వెండి వైభవం');
+  const [heroSubtitle, setHeroSubtitle] = useState(settings?.hero_subtitle || defaultShowroomSettings.hero_subtitle || 'Discover authentic 22K BIS Hallmarked gold jewellery, pure 92.5 sterling silver articles, sacred idols, and bespoke heirloom craftsmanship.');
+  const [heroSubtitleTe, setHeroSubtitleTe] = useState(settings?.hero_subtitle_te || defaultShowroomSettings.hero_subtitle_te || '100% BIS హాల్మార్క్ కలిగిన 22K బంగారు ఆభరణాలు, 92.5 వెండి పూజా సామాగ్రి, దైవ విగ్రహాలు మరియు ప్రత్యేకమైన కస్టమ్ డిజైన్లు.');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   // Action Feedback Alert
@@ -209,9 +218,16 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
       setShopPhone(settings.phone || defaultShowroomSettings.phone);
       setShopWhatsapp(settings.whatsapp || defaultShowroomSettings.whatsapp);
       setShopAddress(settings.address || defaultShowroomSettings.address);
+      setShopAddressTe(settings.address_te || defaultShowroomSettings.address_te || 'వి.ఎన్.ఆర్ & బ్రదర్స్, వద్ధి కాంప్లెక్స్, సుందరాచార్యుల వీధి, సర్వకట్ట');
       setShopCityPincode(settings.city_state_pincode || defaultShowroomSettings.city_state_pincode);
+      setShopCityPincodeTe(settings.city_state_pincode_te || defaultShowroomSettings.city_state_pincode_te || 'ప్రొద్దుటూరు, ఆంధ్రప్రదేశ్ 516360, భారతదేశం');
       setShopMapsUrl(settings.google_maps_url || defaultShowroomSettings.google_maps_url);
       setShopHours(settings.opening_hours || defaultShowroomSettings.opening_hours);
+      setShopHoursTe(settings.opening_hours_te || defaultShowroomSettings.opening_hours_te || 'సోమవారం - ఆదివారం: ఉదయం 10:00 - రాత్రి 9:30');
+      setHeroTitle(settings.hero_title || defaultShowroomSettings.hero_title || 'Timeless Gold & Silver Elegance in Proddatur');
+      setHeroTitleTe(settings.hero_title_te || defaultShowroomSettings.hero_title_te || 'ప్రొద్దుటూరులో తరతరాల బంగారు, వెండి వైభవం');
+      setHeroSubtitle(settings.hero_subtitle || defaultShowroomSettings.hero_subtitle || 'Discover authentic 22K BIS Hallmarked gold jewellery, pure 92.5 sterling silver articles, sacred idols, and bespoke heirloom craftsmanship.');
+      setHeroSubtitleTe(settings.hero_subtitle_te || defaultShowroomSettings.hero_subtitle_te || '100% BIS హాల్మార్క్ కలిగిన 22K బంగారు ఆభరణాలు, 92.5 వెండి పూజా సామాగ్రి, దైవ విగ్రహాలు మరియు ప్రత్యేకమైన కస్టమ్ డిజైన్లు.');
     }
   }, [settings]);
 
@@ -331,16 +347,23 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
     setIsSavingSettings(true);
     try {
       const payload: Record<string, string> = {
-        shop_name: shopName,
-        shop_name_te: shopNameTe,
-        tagline: shopTagline,
-        tagline_te: shopTaglineTe,
-        phone: shopPhone,
-        whatsapp: shopWhatsapp,
-        address: shopAddress,
-        city_state_pincode: shopCityPincode,
-        google_maps_url: shopMapsUrl,
-        opening_hours: shopHours,
+        shop_name: shopName.trim(),
+        shop_name_te: shopNameTe.trim(),
+        tagline: shopTagline.trim(),
+        tagline_te: shopTaglineTe.trim(),
+        phone: shopPhone.trim(),
+        whatsapp: shopWhatsapp.trim(),
+        address: shopAddress.trim(),
+        address_te: shopAddressTe.trim(),
+        city_state_pincode: shopCityPincode.trim(),
+        city_state_pincode_te: shopCityPincodeTe.trim(),
+        google_maps_url: shopMapsUrl.trim(),
+        opening_hours: shopHours.trim(),
+        opening_hours_te: shopHoursTe.trim(),
+        hero_title: heroTitle.trim(),
+        hero_title_te: heroTitleTe.trim(),
+        hero_subtitle: heroSubtitle.trim(),
+        hero_subtitle_te: heroSubtitleTe.trim(),
       };
       await updateAdminSettings(payload, token);
       const updatedSettings: ShowroomSettings = {
@@ -348,7 +371,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
         ...payload,
       };
       onSettingsUpdated(updatedSettings);
-      showFeedback('success', 'Showroom profile & contact settings saved successfully');
+      showFeedback('success', 'Showroom details updated and synced across all visitors in real-time!');
       await loadAdminData();
     } catch (err: any) {
       showFeedback('error', err.message || 'Failed to save settings');
@@ -1652,114 +1675,416 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
 
               {/* TAB 6: SHOWROOM SETTINGS */}
               {activeTab === 'settings' && (
-                <div className="max-w-2xl bg-white rounded-2xl p-6 border border-stone-200 shadow-2xs space-y-6">
-                  <div>
-                    <h3 className="font-serif-luxury text-xl font-bold text-stone-900">
-                      Showroom Profile & Contact Settings
-                    </h3>
-                    <p className="text-xs text-stone-500">
-                      Update your showroom address in Proddatur, WhatsApp contact, operating hours, and tagline.
-                    </p>
+                <div className="max-w-4xl bg-white rounded-2xl p-6 sm:p-8 border border-stone-200 shadow-2xs space-y-8">
+                  {/* Tab Title & Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-200 pb-5">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-900 flex items-center justify-center font-bold">
+                          <Building className="w-4 h-4" />
+                        </div>
+                        <h3 className="font-serif-luxury text-xl font-bold text-stone-900">
+                          Showroom Profile, Name & Location Settings
+                        </h3>
+                      </div>
+                      <p className="text-xs text-stone-500 mt-1">
+                        Update the official jewellery showroom name (English & Telugu), address, Proddatur location, timings, and contact numbers. Changes are saved to database and synced immediately across all visitors.
+                      </p>
+                    </div>
+
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-semibold self-start sm:self-center">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span>Live Sync Enabled</span>
+                    </div>
                   </div>
 
-                  <form onSubmit={handleSaveSettings} className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-stone-700 mb-1">Showroom Name (English)</label>
-                        <input
-                          type="text"
-                          required
-                          value={shopName}
-                          onChange={(e) => setShopName(e.target.value)}
-                          className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
-                        />
+                  <form onSubmit={handleSaveSettings} className="space-y-8">
+                    {/* SECTION 1: Showroom Name & Brand Identity (Bilingual) */}
+                    <div className="bg-stone-50/80 rounded-2xl p-5 border border-stone-200/80 space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b border-stone-200">
+                        <span className="text-sm font-bold text-stone-900">1. Showroom Name & Brand Identity (పేరు & బ్రాండింగ్)</span>
                       </div>
-                      <div>
-                        <label className="block text-xs font-bold text-stone-700 mb-1">షోరూమ్ పేరు (తెలుగు)</label>
-                        <input
-                          type="text"
-                          value={shopNameTe}
-                          onChange={(e) => setShopNameTe(e.target.value)}
-                          className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
-                        />
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            Showroom Name (English) <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. VADDI Jewellery"
+                            value={shopName}
+                            onChange={(e) => setShopName(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#C5A869] focus:outline-hidden"
+                          />
+                          <span className="text-[11px] text-stone-400 mt-0.5 block">Displayed on website header, footer, modals and catalogs</span>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            షోరూమ్ పేరు (తెలుగు) <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="ఉదా: వద్ధి జ్యువెలరీ"
+                            value={shopNameTe}
+                            onChange={(e) => setShopNameTe(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#C5A869] focus:outline-hidden"
+                          />
+                          <span className="text-[11px] text-stone-400 mt-0.5 block">తెలుగు భాష ఎంపిక చేసుకున్నప్పుడు వెబ్‌సైట్‌లో కనిపిస్తుంది</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                        <div>
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            Tagline / Subtitle (English)
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Prestigious Heritage Jewellery Showroom"
+                            value={shopTagline}
+                            onChange={(e) => setShopTagline(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#C5A869] focus:outline-hidden"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            ఉపశీర్షిక / ట్యాగ్‌లైన్ (తెలుగు)
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="ఉదా: తరతరాల నమ్మకమైన బంగారు & వెండి షోరూమ్"
+                            value={shopTaglineTe}
+                            onChange={(e) => setShopTaglineTe(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#C5A869] focus:outline-hidden"
+                          />
+                        </div>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-stone-700 mb-1">Calling Phone Number</label>
-                        <input
-                          type="text"
-                          required
-                          value={shopPhone}
-                          onChange={(e) => setShopPhone(e.target.value)}
-                          className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
-                        />
+                    {/* SECTION 2: Showroom Address & Location (Bilingual) */}
+                    <div className="bg-stone-50/80 rounded-2xl p-5 border border-stone-200/80 space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b border-stone-200">
+                        <span className="text-sm font-bold text-stone-900">2. Showroom Location & Address (చిరునామా & లొకేషన్)</span>
                       </div>
-                      <div>
-                        <label className="block text-xs font-bold text-stone-700 mb-1">WhatsApp Business Number</label>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            Address / Complex & Street (English) <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. VNR & brothers, Vaddi Complex, Sundaracharyula St, Sarvakatta"
+                            value={shopAddress}
+                            onChange={(e) => setShopAddress(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#C5A869] focus:outline-hidden"
+                          />
+                          <span className="text-[11px] text-stone-400 mt-0.5 block">Street & complex details</span>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            చిరునామా / కాంప్లెక్స్ & వీధి (తెలుగు) <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="ఉదా: వి.ఎన్.ఆర్ & బ్రదర్స్, వద్ధి కాంప్లెక్స్, సుందరాచార్యుల వీధి, సర్వకట్ట"
+                            value={shopAddressTe}
+                            onChange={(e) => setShopAddressTe(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#C5A869] focus:outline-hidden"
+                          />
+                          <span className="text-[11px] text-stone-400 mt-0.5 block">వీధి మరియు కాంప్లెక్స్ వివరాలు</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                        <div>
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            City, State & Pincode (English) <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Proddatur, Andhra Pradesh 516360, India"
+                            value={shopCityPincode}
+                            onChange={(e) => setShopCityPincode(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#C5A869] focus:outline-hidden"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            నగరం, రాష్ట్రం & పిన్‌కోడ్ (తెలుగు) <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="ఉదా: ప్రొద్దుటూరు, ఆంధ్రప్రదేశ్ 516360, భారతదేశం"
+                            value={shopCityPincodeTe}
+                            onChange={(e) => setShopCityPincodeTe(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#C5A869] focus:outline-hidden"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="pt-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-xs font-bold text-stone-800">
+                            Google Maps Showroom Location Link
+                          </label>
+                          {shopMapsUrl && (
+                            <a
+                              href={shopMapsUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[11px] text-amber-700 hover:text-amber-800 font-semibold flex items-center gap-1"
+                            >
+                              <span>Test Google Maps Link ↗</span>
+                            </a>
+                          )}
+                        </div>
                         <input
-                          type="text"
-                          required
-                          value={shopWhatsapp}
-                          onChange={(e) => setShopWhatsapp(e.target.value)}
-                          className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
+                          type="url"
+                          placeholder="https://maps.app.goo.gl/..."
+                          value={shopMapsUrl}
+                          onChange={(e) => setShopMapsUrl(e.target.value)}
+                          className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs font-mono focus:ring-2 focus:ring-[#C5A869] focus:outline-hidden"
                         />
+                        <span className="text-[11px] text-stone-400 mt-0.5 block">Direct GPS map link for showroom directions</span>
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-bold text-stone-700 mb-1">Address / Street</label>
-                      <input
-                        type="text"
-                        required
-                        value={shopAddress}
-                        onChange={(e) => setShopAddress(e.target.value)}
-                        className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-stone-700 mb-1">City, State & Pincode</label>
-                        <input
-                          type="text"
-                          required
-                          value={shopCityPincode}
-                          onChange={(e) => setShopCityPincode(e.target.value)}
-                          className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
-                        />
+                    {/* SECTION 3: Contact Numbers & Operating Hours */}
+                    <div className="bg-stone-50/80 rounded-2xl p-5 border border-stone-200/80 space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b border-stone-200">
+                        <span className="text-sm font-bold text-stone-900">3. Contact Numbers & Operating Hours (సంప్రదింపు నంబర్లు & వేళలు)</span>
                       </div>
-                      <div>
-                        <label className="block text-xs font-bold text-stone-700 mb-1">Opening Hours</label>
-                        <input
-                          type="text"
-                          required
-                          value={shopHours}
-                          onChange={(e) => setShopHours(e.target.value)}
-                          className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs"
-                        />
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            Calling Phone Number <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="+91 9650052262"
+                            value={shopPhone}
+                            onChange={(e) => setShopPhone(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#C5A869] focus:outline-hidden"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            WhatsApp Business Number <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="+919650052262"
+                            value={shopWhatsapp}
+                            onChange={(e) => setShopWhatsapp(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#C5A869] focus:outline-hidden"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                        <div>
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            Opening Hours (English) <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Monday - Sunday: 10:00 AM - 9:30 PM (All 7 Days)"
+                            value={shopHours}
+                            onChange={(e) => setShopHours(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#C5A869] focus:outline-hidden"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            తెరిచే వేళలు (తెలుగు) <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="ఉదా: సోమవారం - ఆదివారం: ఉదయం 10:00 - రాత్రి 9:30"
+                            value={shopHoursTe}
+                            onChange={(e) => setShopHoursTe(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#C5A869] focus:outline-hidden"
+                          />
+                        </div>
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-bold text-stone-700 mb-1">Google Maps Showroom Link</label>
-                      <input
-                        type="url"
-                        value={shopMapsUrl}
-                        onChange={(e) => setShopMapsUrl(e.target.value)}
-                        className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs font-mono"
-                      />
+                    {/* SECTION 4: Hero Banner Bilingual Headlines */}
+                    <div className="bg-stone-50/80 rounded-2xl p-5 border border-stone-200/80 space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b border-stone-200">
+                        <span className="text-sm font-bold text-stone-900">4. Hero Banner Headlines (హీరో బ్యానర్ ముఖ్యాంశాలు)</span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            Hero Main Title (English)
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Timeless Gold & Silver Elegance in Proddatur"
+                            value={heroTitle}
+                            onChange={(e) => setHeroTitle(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#C5A869] focus:outline-hidden"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            హీరో ప్రధాన శీర్షిక (తెలుగు)
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="ఉదా: ప్రొద్దుటూరులో తరతరాల బంగారు, వెండి వైభవం"
+                            value={heroTitleTe}
+                            onChange={(e) => setHeroTitleTe(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#C5A869] focus:outline-hidden"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                        <div>
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            Hero Subtitle (English)
+                          </label>
+                          <textarea
+                            rows={2}
+                            placeholder="Hero subtitle in English..."
+                            value={heroSubtitle}
+                            onChange={(e) => setHeroSubtitle(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#C5A869] focus:outline-hidden"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            హీరో ఉపశీర్షిక (తెలుగు)
+                          </label>
+                          <textarea
+                            rows={2}
+                            placeholder="హీరో ఉపశీర్షిక తెలుగులో..."
+                            value={heroSubtitleTe}
+                            onChange={(e) => setHeroSubtitleTe(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#C5A869] focus:outline-hidden"
+                          />
+                        </div>
+                      </div>
                     </div>
 
-                    <button
-                      type="submit"
-                      disabled={isSavingSettings}
-                      className="px-6 py-2.5 bg-[#1A1A1A] hover:bg-stone-800 text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-50"
-                    >
-                      <Save className="w-4 h-4 text-[#C5A869]" />
-                      <span>{isSavingSettings ? 'Saving Settings...' : 'Save Showroom Settings'}</span>
-                    </button>
+                    {/* SECTION 5: LIVE BILINGUAL PREVIEW CARD */}
+                    <div className="bg-stone-900 text-stone-100 rounded-2xl p-5 space-y-4 border border-stone-800">
+                      <div className="flex items-center justify-between border-b border-stone-800 pb-3">
+                        <div className="flex items-center gap-2">
+                          <Eye className="w-4 h-4 text-[#C5A869]" />
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#C5A869]">
+                            Live Customer Display Preview (కస్టమర్లకు ఎలా కనిపిస్తుంది)
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-stone-400 bg-stone-800 px-2 py-0.5 rounded">
+                          English & తెలుగు
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        {/* English Preview Card */}
+                        <div className="bg-stone-950 p-4 rounded-xl border border-stone-800 space-y-2">
+                          <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest block">
+                            English Mode
+                          </span>
+                          <div className="font-serif-luxury text-base font-bold text-white">
+                            {shopName || 'VADDI Jewellery'}
+                          </div>
+                          <div className="text-[11px] text-[#C5A869]">
+                            {shopTagline || 'Prestigious Heritage Jewellery Showroom'}
+                          </div>
+                          <div className="text-[11px] text-stone-400 pt-1">
+                            📍 {shopAddress || 'VNR & brothers, Vaddi Complex'}, {shopCityPincode || 'Proddatur, AP'}
+                          </div>
+                          <div className="text-[11px] text-stone-400">
+                            ⏰ {shopHours || '10:00 AM - 9:30 PM'}
+                          </div>
+                          <div className="text-[11px] text-emerald-400 font-mono">
+                            📞 {shopPhone || '+91 9650052262'}
+                          </div>
+                        </div>
+
+                        {/* Telugu Preview Card */}
+                        <div className="bg-stone-950 p-4 rounded-xl border border-stone-800 space-y-2">
+                          <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest block">
+                            తెలుగు మోడ్
+                          </span>
+                          <div className="font-serif-luxury text-base font-bold text-white">
+                            {shopNameTe || 'వద్ధి జ్యువెలరీ'}
+                          </div>
+                          <div className="text-[11px] text-[#C5A869]">
+                            {shopTaglineTe || 'తరతరాల నమ్మకమైన బంగారు & వెండి షోరూమ్'}
+                          </div>
+                          <div className="text-[11px] text-stone-400 pt-1">
+                            📍 {shopAddressTe || 'వి.ఎన్.ఆర్ కాంప్లెక్స్, సర్వకట్ట'}, {shopCityPincodeTe || 'ప్రొద్దుటూరు'}
+                          </div>
+                          <div className="text-[11px] text-stone-400">
+                            ⏰ {shopHoursTe || 'ఉదయం 10:00 - రాత్రి 9:30'}
+                          </div>
+                          <div className="text-[11px] text-emerald-400 font-mono">
+                            📞 {shopPhone || '+91 9650052262'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Submit Actions */}
+                    <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-stone-200">
+                      <button
+                        type="submit"
+                        disabled={isSavingSettings}
+                        className="px-8 py-3 bg-[#1A1A1A] hover:bg-stone-800 text-white font-bold text-sm rounded-xl flex items-center gap-2.5 shadow-md hover:shadow-lg transition-all cursor-pointer disabled:opacity-50"
+                      >
+                        <Save className="w-4 h-4 text-[#C5A869]" />
+                        <span>{isSavingSettings ? 'Saving to Database...' : 'Save & Update Showroom Details'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShopName(defaultShowroomSettings.shop_name);
+                          setShopNameTe(defaultShowroomSettings.shop_name_te || 'వద్ధి జ్యువెలరీ');
+                          setShopTagline(defaultShowroomSettings.tagline);
+                          setShopTaglineTe(defaultShowroomSettings.tagline_te || 'తరతరాల నమ్మకమైన బంగారు & వెండి షోరూమ్');
+                          setShopAddress(defaultShowroomSettings.address);
+                          setShopAddressTe(defaultShowroomSettings.address_te || 'వి.ఎన్.ఆర్ & బ్రదర్స్, వద్ధి కాంప్లెక్స్, సుందరాచార్యుల వీధి, సర్వకట్ట');
+                          setShopCityPincode(defaultShowroomSettings.city_state_pincode);
+                          setShopCityPincodeTe(defaultShowroomSettings.city_state_pincode_te || 'ప్రొద్దుటూరు, ఆంధ్రప్రదేశ్ 516360, భారతదేశం');
+                          setShopPhone(defaultShowroomSettings.phone);
+                          setShopWhatsapp(defaultShowroomSettings.whatsapp);
+                          setShopMapsUrl(defaultShowroomSettings.google_maps_url);
+                          setShopHours(defaultShowroomSettings.opening_hours);
+                          setShopHoursTe(defaultShowroomSettings.opening_hours_te || 'సోమవారం - ఆదివారం: ఉదయం 10:00 - రాత్రి 9:30');
+                        }}
+                        className="px-4 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold rounded-xl border border-stone-300 transition-colors cursor-pointer"
+                      >
+                        Reset to Default Vaddi Details
+                      </button>
+                    </div>
                   </form>
                 </div>
               )}

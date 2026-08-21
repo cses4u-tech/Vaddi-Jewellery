@@ -43,10 +43,15 @@ export const Header: React.FC<HeaderProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const phone = settings?.phone || '+91 9650052262';
+  const shopName = language === 'te' ? (settings?.shop_name_te || 'వద్ధి జ్యువెలరీ') : (settings?.shop_name || 'VADDI');
+  const shopTagline = language === 'te' ? (settings?.tagline_te || 'తరతరాల నమ్మకమైన షోరూమ్ • ప్రొద్దుటూరు') : (settings?.tagline || 'Jewellery • Proddatur');
+  const shopAddress = language === 'te' ? (settings?.address_te || 'వి.ఎన్.ఆర్ & బ్రదర్స్, వద్ధి కాంప్లెక్స్, సర్వకట్ట') : (settings?.address || 'VNR & brothers, Vaddi Complex, Sarvakatta');
+  const shopHours = language === 'te' ? (settings?.opening_hours_te || 'ఉదయం 10:00 - రాత్రి 9:30') : (settings?.opening_hours || '10:00 AM - 9:30 PM');
+
   const whatsappUrl = `https://wa.me/${(settings?.whatsapp || '919650052262').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
     language === 'te'
-      ? 'నమస్కారం వధి జ్యువెలరీ, నేను మీ షోరూమ్ కలెక్షన్ గురించి సమాచారం తెలుసుకోవాలనుకుంటున్నాను.'
-      : 'Hello VADDI Jewellery, I would like to inquire about your jewellery showroom collection.'
+      ? `నమస్కారం ${shopName}, నేను మీ షోరూమ్ కలెక్షన్ గురించి సమాచారం తెలుసుకోవాలనుకుంటున్నాను.`
+      : `Hello ${shopName}, I would like to inquire about your jewellery showroom collection.`
   )}`;
 
   const navItems = [
@@ -78,16 +83,14 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="flex items-center gap-1.5 text-stone-300">
               <MapPin className="w-3.5 h-3.5 text-[#C5A869] shrink-0" />
               <span className="truncate hidden sm:inline">
-                {language === 'te'
-                  ? 'వి.ఎన్.ఆర్ కాంప్లెక్స్, సర్వకట్ట, ప్రొద్దుటూరు'
-                  : 'VNR Complex, Sarvakatta, Proddatur'}
+                {shopAddress}
               </span>
-              <span className="sm:hidden">{language === 'te' ? 'ప్రొద్దుటూరు' : 'Proddatur, AP'}</span>
+              <span className="sm:hidden">{language === 'te' ? (settings?.city_state_pincode_te || 'ప్రొద్దుటూరు') : (settings?.city_state_pincode?.split(',')[0] || 'Proddatur')}</span>
             </div>
 
             <div className="hidden md:flex items-center gap-1.5 text-stone-400">
               <Clock className="w-3.5 h-3.5 text-[#C5A869] shrink-0" />
-              <span>{t('opening_hours_short')}</span>
+              <span>{shopHours}</span>
             </div>
           </div>
 
@@ -161,10 +164,10 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Brand Typography */}
             <div className="flex flex-col">
               <span className="font-serif-luxury text-2xl sm:text-3xl font-bold tracking-wider text-[#1A1A1A] uppercase leading-none">
-                {language === 'te' ? 'వద్ధి జ్యువెలరీ' : 'VADDI'}
+                {shopName}
               </span>
               <span className="text-[10px] sm:text-[11px] font-semibold tracking-[0.25em] text-[#9A9483] uppercase mt-0.5">
-                {language === 'te' ? 'తరతరాల నమ్మకమైన షోరూమ్ • ప్రొద్దుటూరు' : 'Jewellery • Proddatur'}
+                {shopTagline}
               </span>
             </div>
           </div>
