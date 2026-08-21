@@ -3,14 +3,18 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 
-// Active Server-Sent Events (SSE) connections for Real-Time Sync across all users
-const sseClients = new Set<ServerResponse>();
+// Active Server-Sent Events (SSE) connections for Real-Time Sync across all users & browsers
+const sseClients: Set<ServerResponse> = (globalThis as any).__vaddi_sse_clients || new Set<ServerResponse>();
+(globalThis as any).__vaddi_sse_clients = sseClients;
 
 export function broadcastRealtimeEvent(type: string, payload: any = {}) {
   const message = `data: ${JSON.stringify({ type, payload, timestamp: Date.now() })}\n\n`;
-  for (const client of sseClients) {
+  for (const client of Array.from(sseClients)) {
     try {
       client.write(message);
+      if (typeof (client as any).flush === 'function') {
+        (client as any).flush();
+      }
     } catch {
       sseClients.delete(client);
     }
@@ -18,16 +22,22 @@ export function broadcastRealtimeEvent(type: string, payload: any = {}) {
 }
 
 // Periodic heartbeat so SSE connection never times out
-setInterval(() => {
-  const ping = `event: ping\ndata: ${Date.now()}\n\n`;
-  for (const client of sseClients) {
-    try {
-      client.write(ping);
-    } catch {
-      sseClients.delete(client);
+if (!(globalThis as any).__vaddi_sse_heartbeat_started) {
+  (globalThis as any).__vaddi_sse_heartbeat_started = true;
+  setInterval(() => {
+    const ping = `event: ping\ndata: ${Date.now()}\n\n`;
+    for (const client of Array.from(sseClients)) {
+      try {
+        client.write(ping);
+        if (typeof (client as any).flush === 'function') {
+          (client as any).flush();
+        }
+      } catch {
+        sseClients.delete(client);
+      }
     }
-  }
-}, 20000);
+  }, 15000);
+}
 
 // Helper to parse JSON body
 async function parseJsonBody(req: IncomingMessage): Promise<any> {
@@ -55,6 +65,10 @@ async function parseJsonBody(req: IncomingMessage): Promise<any> {
 function sendJson(res: ServerResponse, statusCode: number, data: any) {
   res.statusCode = statusCode;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-token');
@@ -127,12 +141,19 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
   // Real-Time SSE Stream for Instant Push to all active website visitors
   if ((pathname === '/api/events' || pathname === '/api/realtime/stream') && method === 'GET') {
     res.writeHead(200, {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache, no-transform',
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache, no-store, no-transform, must-revalidate',
       'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no',
       'Access-Control-Allow-Origin': '*',
     });
+    if (typeof (res as any).flushHeaders === 'function') {
+      (res as any).flushHeaders();
+    }
     res.write(`data: ${JSON.stringify({ type: 'connected', timestamp: Date.now() })}\n\n`);
+    if (typeof (res as any).flush === 'function') {
+      (res as any).flush();
+    }
 
     sseClients.add(res);
     req.on('close', () => {
@@ -150,15 +171,24 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
 
   try {
     // ----------------------------------------------------
-    // Public Settings: GET /api/settings
+    // Public & Admin Settings & Rates: GET /api/settings, /api/rates, /api/admin/settings, /api/admin/rates
     // ----------------------------------------------------
-    if (pathname === '/api/settings' && method === 'GET') {
+    if ((pathname === '/api/settings' || pathname === '/api/rates' || pathname === '/api/admin/settings' || pathname === '/api/admin/rates') && method === 'GET') {
       const rows = db.prepare('SELECT key, value FROM settings').all() as { key: string; value: string }[];
       const settingsMap: Record<string, string> = {};
       for (const row of rows) {
         settingsMap[row.key] = row.value;
       }
-      sendJson(res, 200, { success: true, settings: settingsMap });
+      sendJson(res, 200, {
+        success: true,
+        settings: settingsMap,
+        rates: {
+          gold_rate_24k: settingsMap['gold_rate_24k'] || '7650',
+          gold_rate_22k: settingsMap['gold_rate_22k'] || '7020',
+          gold_rate_18k: settingsMap['gold_rate_18k'] || '5750',
+          silver_rate: settingsMap['silver_rate'] || '98',
+        }
+      });
       return true;
     }
 
@@ -785,13 +815,15 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     }
 
     // ----------------------------------------------------
-    // Admin Settings Update: PUT /api/admin/settings & PUT /api/admin/rates
+    // Admin Settings Update: PUT/POST /api/admin/settings, /api/admin/rates, /api/settings, /api/rates
     // ----------------------------------------------------
-    if ((pathname === '/api/admin/settings' || pathname === '/api/admin/rates') && (method === 'PUT' || method === 'POST')) {
+    if ((pathname === '/api/admin/settings' || pathname === '/api/admin/rates' || pathname === '/api/settings' || pathname === '/api/rates') && (method === 'PUT' || method === 'POST')) {
       const body = await parseJsonBody(req);
       const insertOrUpdate = db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)');
       for (const [key, value] of Object.entries(body)) {
-        insertOrUpdate.run(key, String(value));
+        if (key && value !== undefined && value !== null) {
+          insertOrUpdate.run(key, String(value));
+        }
       }
 
       // If gold/silver rates were updated, automatically recalculate prices for ALL products in DB

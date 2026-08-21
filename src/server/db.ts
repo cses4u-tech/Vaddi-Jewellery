@@ -3,16 +3,40 @@ import path from 'node:path';
 import fs from 'node:fs';
 
 const DB_PATH = path.resolve(process.cwd(), 'vaddi_jewellery.db');
-let cachedDb: DatabaseSync | null = null;
+
+export const DEFAULT_SHOWROOM_SETTINGS: Record<string, string> = {
+  shop_name: 'VADDI Jewellery',
+  shop_name_te: 'వద్ధి జ్యువెలరీ',
+  tagline: 'Prestigious Heritage Jewellery Showroom',
+  tagline_te: 'తరతరాల నమ్మకమైన బంగారు & వెండి షోరూమ్',
+  address: 'VNR & brothers, Vaddi Complex, Sundaracharyula St, Sarvakatta',
+  address_te: 'వి.ఎన్.ఆర్ & బ్రదర్స్, వద్ధి కాంప్లెక్స్, సుందరాచార్యుల వీధి, సర్వకట్ట',
+  city_state_pincode: 'Proddatur, Andhra Pradesh 516360, India',
+  city_state_pincode_te: 'ప్రొద్దుటూరు, ఆంధ్రప్రదేశ్ 516360, భారతదేశం',
+  phone: '+91 9650052262',
+  whatsapp: '+919650052262',
+  google_maps_url: 'https://maps.app.goo.gl/LcQVnVkd3HuDWsgi9',
+  opening_hours: 'Monday - Sunday: 10:00 AM - 9:30 PM',
+  opening_hours_te: 'సోమవారం - ఆదివారం: ఉదయం 10:00 - రాత్రి 9:30',
+  gold_rate_24k: '7650',
+  gold_rate_22k: '7020',
+  gold_rate_18k: '5750',
+  silver_rate: '98',
+  hero_title: 'Timeless Gold & Silver Elegance in Proddatur',
+  hero_title_te: 'ప్రొద్దుటూరులో తరతరాల బంగారు, వెండి వైభవం',
+  hero_subtitle: 'Discover authentic 22K BIS Hallmarked gold jewellery, pure 92.5 sterling silver articles, sacred idols, and bespoke heirloom craftsmanship.',
+  hero_subtitle_te: '100% BIS హాల్మార్క్ కలిగిన 22K బంగారు ఆభరణాలు, 92.5 వెండి పూజా సామాగ్రి, దైవ విగ్రహాలు మరియు ప్రత్యేకమైన కస్టమ్ డిజైన్లు.'
+};
 
 /**
  * Remove any existing SQLite files on disk if corrupt or malformed.
  */
 function cleanCorruptedDbFiles() {
   try {
-    if (cachedDb) {
-      try { cachedDb.close(); } catch {}
-      cachedDb = null;
+    const existing = (globalThis as any).__vaddi_cached_db;
+    if (existing) {
+      try { existing.close(); } catch {}
+      (globalThis as any).__vaddi_cached_db = null;
     }
     const walPath = `${DB_PATH}-wal`;
     const shmPath = `${DB_PATH}-shm`;
@@ -53,31 +77,26 @@ function createAndInitDb(): DatabaseSync {
   }
 
   initSchema(db);
+  (globalThis as any).__vaddi_cached_db = db;
   return db;
 }
 
 /**
- * Main database accessor with singleton caching and auto-healing on corrupt/malformed disk image.
+ * Main database accessor with global singleton caching.
  */
 export function getDatabase(): DatabaseSync {
-  if (cachedDb) {
+  const cached = (globalThis as any).__vaddi_cached_db;
+  if (cached) {
     try {
-      // Quick ping to check connection health
-      cachedDb.prepare('SELECT 1').get();
-      return cachedDb;
+      cached.prepare('SELECT 1').get();
+      return cached;
     } catch (e: any) {
-      const msg = String(e?.message || '');
-      if (msg.includes('malformed') || msg.includes('corrupt') || msg.includes('readonly')) {
-        console.error('Cached DB connection corrupted, re-initializing...', e);
-        return resetAndRecoverDatabase();
-      }
-      return cachedDb;
+      console.warn('Cached DB connection error, re-initializing...', e);
     }
   }
 
   try {
-    cachedDb = createAndInitDb();
-    return cachedDb;
+    return createAndInitDb();
   } catch (err: any) {
     console.error('Failed to open database. Attempting self-healing recovery...', err);
     return resetAndRecoverDatabase();
@@ -89,8 +108,7 @@ export function getDatabase(): DatabaseSync {
  */
 export function resetAndRecoverDatabase(): DatabaseSync {
   cleanCorruptedDbFiles();
-  cachedDb = createAndInitDb();
-  return cachedDb;
+  return createAndInitDb();
 }
 
 function initSchema(db: DatabaseSync) {
@@ -185,6 +203,12 @@ function initSchema(db: DatabaseSync) {
     );
   `);
 
+  // Always ensure all default settings keys exist in the database
+  const insertSettingDefault = db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)');
+  for (const [k, v] of Object.entries(DEFAULT_SHOWROOM_SETTINGS)) {
+    insertSettingDefault.run(k, v);
+  }
+
   // 6. Admins
   db.exec(`
     CREATE TABLE IF NOT EXISTS admins (
@@ -194,6 +218,7 @@ function initSchema(db: DatabaseSync) {
       last_login TEXT
     );
   `);
+  db.prepare('INSERT OR IGNORE INTO admins (username, password_hash) VALUES (?, ?)').run('admin', 'VaddiFamily@PDTR');
 
   // Check if we need to seed
   const catCount = (db.prepare('SELECT COUNT(*) as count FROM categories').get() as { count: number }).count;

@@ -124,48 +124,110 @@ export function App() {
   ]);
 
   useEffect(() => {
+    // Initial fetch
     loadShowroomData();
-    // Auto-refresh settings every 30s as fallback
+
+    // 1. Fast background poll every 4 seconds as reliable universal fallback across all browsers & devices
     const interval = setInterval(() => {
       fetchSettings().then((s) => {
         if (s) setSettings(s);
       }).catch(() => {});
-    }, 30000);
+    }, 4000);
 
-    // REAL-TIME SERVER-SENT EVENTS (SSE) LISTENER
+    // 2. Immediate refetch whenever user focuses the browser window or returns to the tab
+    const handleWindowFocus = () => {
+      loadShowroomData();
+      loadCatalogProducts();
+    };
+    window.addEventListener('focus', handleWindowFocus);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        handleWindowFocus();
+      }
+    });
+
+    // 3. Instant cross-tab BroadcastChannel listener
+    let syncChannel: BroadcastChannel | null = null;
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      try {
+        syncChannel = new BroadcastChannel('vaddi_realtime_sync');
+        syncChannel.onmessage = (msg) => {
+          if (msg.data?.type === 'rates_updated' || msg.data?.type === 'settings_updated') {
+            loadShowroomData();
+            loadCatalogProducts();
+          } else if (msg.data?.type === 'products_updated' || msg.data?.type === 'categories_updated') {
+            loadShowroomData();
+            loadCatalogProducts();
+          }
+        };
+      } catch (e) {
+        console.warn('BroadcastChannel error:', e);
+      }
+    }
+
+    // 4. Local storage cross-tab change event listener
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'vaddi_local_settings' || e.key === 'vaddi_local_products') {
+        loadShowroomData();
+        loadCatalogProducts();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // 5. REAL-TIME SERVER-SENT EVENTS (SSE) LISTENER
     // Automatically pushes updates to all connected browser clients whenever admin changes rates, wastage, labour, or products
     let eventSource: EventSource | null = null;
-    try {
-      eventSource = new EventSource('/api/events');
-      
-      eventSource.onmessage = (event) => {
-        try {
-          const payload = JSON.parse(event.data);
-          if (payload.type === 'connected') {
-            // Connected to real-time sync stream
-          } else if (payload.type === 'rates_updated' || payload.type === 'settings_updated') {
-            loadShowroomData();
-            loadCatalogProducts();
-          } else if (payload.type === 'products_updated' || payload.type === 'categories_updated') {
-            loadShowroomData();
-            loadCatalogProducts();
-          } else if (payload.type === 'reviews_updated' || payload.type === 'enquiries_updated') {
-            loadShowroomData();
-          }
-        } catch (e) {
-          console.warn('Could not parse SSE payload:', e);
-        }
-      };
+    let reconnectTimeout: any = null;
 
-      eventSource.onerror = () => {
-        // EventSource will automatically retry connection
-      };
-    } catch (e) {
-      console.warn('Real-time SSE not supported or connection error:', e);
-    }
+    const setupSSE = () => {
+      try {
+        if (eventSource) {
+          eventSource.close();
+        }
+        eventSource = new EventSource('/api/events');
+        
+        eventSource.onmessage = (event) => {
+          try {
+            const payload = JSON.parse(event.data);
+            if (payload.type === 'connected') {
+              // Connected to real-time sync stream
+            } else if (payload.type === 'rates_updated' || payload.type === 'settings_updated') {
+              loadShowroomData();
+              loadCatalogProducts();
+            } else if (payload.type === 'products_updated' || payload.type === 'categories_updated') {
+              loadShowroomData();
+              loadCatalogProducts();
+            } else if (payload.type === 'reviews_updated' || payload.type === 'enquiries_updated') {
+              loadShowroomData();
+            }
+          } catch (e) {
+            console.warn('Could not parse SSE payload:', e);
+          }
+        };
+
+        eventSource.onerror = () => {
+          if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+          }
+          clearTimeout(reconnectTimeout);
+          reconnectTimeout = setTimeout(setupSSE, 3000);
+        };
+      } catch (e) {
+        console.warn('Real-time SSE not supported or connection error:', e);
+      }
+    };
+
+    setupSSE();
 
     return () => {
       clearInterval(interval);
+      clearTimeout(reconnectTimeout);
+      window.removeEventListener('focus', handleWindowFocus);
+      window.removeEventListener('storage', handleStorageChange);
+      if (syncChannel) {
+        try { syncChannel.close(); } catch {}
+      }
       if (eventSource) {
         eventSource.close();
       }

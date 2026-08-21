@@ -15,6 +15,24 @@ const KEY_PRODUCTS = 'vaddi_local_products';
 const KEY_REVIEWS = 'vaddi_local_reviews';
 const KEY_ENQUIRIES = 'vaddi_local_enquiries';
 
+// Cross-Tab BroadcastChannel for instantaneous sync across all tabs and windows
+let syncChannel: BroadcastChannel | null = null;
+if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+  try {
+    syncChannel = new BroadcastChannel('vaddi_realtime_sync');
+  } catch (e) {
+    console.warn('BroadcastChannel error:', e);
+  }
+}
+
+export function notifyCrossTabSync(type: string, payload?: any) {
+  if (syncChannel) {
+    try {
+      syncChannel.postMessage({ type, payload, timestamp: Date.now() });
+    } catch {}
+  }
+}
+
 // Helper functions for local caching
 function getLocalSettings(): ShowroomSettings {
   if (typeof window === 'undefined') return DEFAULT_SETTINGS;
@@ -38,6 +56,7 @@ function saveLocalSettings(settings: Partial<ShowroomSettings>) {
     const current = getLocalSettings();
     const updated = { ...current, ...settings };
     localStorage.setItem(KEY_SETTINGS, JSON.stringify(updated));
+    notifyCrossTabSync('settings_updated', updated);
   } catch (e) {
     console.warn('Error saving local settings:', e);
   }
@@ -135,14 +154,28 @@ function saveLocalEnquiries(enqs: Enquiry[]) {
   }
 }
 
-// Safe JSON parser helper
+// Safe JSON parser helper with mandatory zero-caching across all browsers & proxies
 async function safeJsonFetch<T = any>(
   url: string,
   options?: RequestInit,
   fallbackData?: T
 ): Promise<{ ok: boolean; status: number; data: T }> {
   try {
-    const res = await fetch(url, options);
+    const isGet = !options?.method || options.method.toUpperCase() === 'GET';
+    const separator = url.includes('?') ? '&' : '?';
+    const targetUrl = isGet ? `${url}${separator}_t=${Date.now()}` : url;
+
+    const finalOptions: RequestInit = {
+      ...options,
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        ...(options?.headers || {}),
+      },
+    };
+
+    const res = await fetch(targetUrl, finalOptions);
     const contentType = res.headers.get('content-type') || '';
     const text = await res.text();
 
@@ -808,11 +841,18 @@ export async function updateAdminSettings(settings: Record<string, string>, toke
         body: JSON.stringify(settings),
       }
     );
-    if (ok) return data;
-  } catch (err) {
-    console.warn('Update settings API error, saved to local storage:', err);
+    if (ok) {
+      notifyCrossTabSync('rates_updated', settings);
+      notifyCrossTabSync('products_updated');
+      return data;
+    } else {
+      throw new Error(data?.error || 'Database rejected settings update');
+    }
+  } catch (err: any) {
+    console.error('Update settings API error:', err);
+    notifyCrossTabSync('rates_updated', settings);
+    throw err;
   }
-  return { success: true, message: 'Settings saved successfully' };
 }
 
 export async function updateAdminRates(

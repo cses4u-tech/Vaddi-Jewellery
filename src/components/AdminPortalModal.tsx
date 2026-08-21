@@ -11,6 +11,7 @@ import {
   fetchAdminEnquiries,
   updateAdminEnquiry,
   deleteAdminEnquiry,
+  fetchSettings,
   updateAdminSettings,
   uploadLocalImage,
   fetchAdminCategories,
@@ -235,17 +236,21 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
   const loadAdminData = async () => {
     if (!token) return;
     try {
-      const [statsData, prodsData, enqsData, catsData] = await Promise.all([
+      const [statsData, prodsData, enqsData, catsData, freshSettings] = await Promise.all([
         fetchAdminStats(token).catch(() => null),
         fetchAdminProducts(token).catch(() => []),
         fetchAdminEnquiries(token).catch(() => []),
         fetchAdminCategories(token).catch(() => []),
+        fetchSettings().catch(() => null),
       ]);
       if (statsData) setStats(statsData);
       setProducts(prodsData);
       setEnquiries(enqsData);
       if (catsData && catsData.length > 0) {
         setAdminCategories(catsData);
+      }
+      if (freshSettings) {
+        onSettingsUpdated(freshSettings);
       }
     } catch (err) {
       console.error('Error fetching admin data:', err);
@@ -262,8 +267,13 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
   };
 
   useEffect(() => {
-    if (isOpen && token) {
-      loadAdminData();
+    if (isOpen) {
+      fetchSettings().then((fresh) => {
+        if (fresh) onSettingsUpdated(fresh);
+      });
+      if (token) {
+        loadAdminData();
+      }
     }
   }, [isOpen, token]);
 
@@ -281,6 +291,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
         sessionStorage.setItem('vaddi_admin_token', adminToken);
         setPassword('');
         showFeedback('success', 'Welcome to VADDI Jewellery Admin Portal');
+        await loadAdminData();
       } else {
         setLoginError('Invalid showroom password. Please try again.');
       }
@@ -311,11 +322,10 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
         silver_rate: String(rateSilver),
       };
       await updateAdminSettings(payload, token);
-      const updatedSettings: ShowroomSettings = {
-        ...(settings || defaultShowroomSettings),
-        ...payload,
-      };
-      onSettingsUpdated(updatedSettings);
+      const freshSettings = await fetchSettings();
+      if (freshSettings) {
+        onSettingsUpdated(freshSettings);
+      }
       showFeedback('success', "Today's Gold & Silver rates updated! All product prices automatically recalculated in real time for all users.");
       await loadAdminData();
       onProductsUpdated();
@@ -366,11 +376,10 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
         hero_subtitle_te: heroSubtitleTe.trim(),
       };
       await updateAdminSettings(payload, token);
-      const updatedSettings: ShowroomSettings = {
-        ...(settings || defaultShowroomSettings),
-        ...payload,
-      };
-      onSettingsUpdated(updatedSettings);
+      const freshSettings = await fetchSettings();
+      if (freshSettings) {
+        onSettingsUpdated(freshSettings);
+      }
       showFeedback('success', 'Showroom details updated and synced across all visitors in real-time!');
       await loadAdminData();
     } catch (err: any) {
